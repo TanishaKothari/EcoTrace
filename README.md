@@ -2,7 +2,7 @@
 
 EcoTrace is a comprehensive web application that reveals the hidden environmental impact of everyday products through AI-powered analysis. It provides users with clear EcoScores (1-100 scale) and detailed insights into a product's carbon footprint, resource usage, and other sustainability factors.
 
-## 🌱 Features
+## Features
 
 ### 🔍 Product Analysis
 - **Manual Search**: Enter product names or paste product URLs
