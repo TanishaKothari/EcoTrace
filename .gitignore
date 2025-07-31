@@ -48,6 +48,7 @@ Thumbs.db
 logs/
 
 # Node.js
+node_modules/
 frontend/node_modules/
 frontend/.next/
 frontend/out/
@@ -59,11 +60,16 @@ frontend/.env.test.local
 frontend/.env.production.local
 
 # npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
 
 # Dependencies
+package-lock.json
+yarn.lock
 frontend/package-lock.json
 frontend/yarn.lock
 
