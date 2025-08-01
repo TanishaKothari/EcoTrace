@@ -113,47 +113,20 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-green-200 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-green-600 p-2 rounded-lg">
-                <Leaf className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">EcoTrace</h1>
-                <p className="text-sm text-gray-700">Environmental Impact Analysis</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 text-sm text-gray-700">
-              <div className="flex items-center space-x-1">
-                <Globe className="h-4 w-4" />
-                <span>AI-Powered</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <BarChart3 className="h-4 w-4" />
-                <span>Real-time Analysis</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 pt-4 pb-8">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-green-700 to-blue-700 bg-clip-text text-transparent">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-green-700 to-blue-700 bg-clip-text text-transparent">
             Discover the Hidden Environmental Impact
-          </h2>
-          <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
+          </h1>
+          <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto">
             Get instant AI-powered analysis of any product's carbon footprint, resource usage,
             and sustainability score. Make informed choices for a better planet.
           </p>
 
           {/* Tab Navigation */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-6">
             <div className="bg-white rounded-lg p-1 shadow-lg border border-gray-200 flex flex-wrap justify-center">
               <button
                 onClick={() => setActiveTab('search')}

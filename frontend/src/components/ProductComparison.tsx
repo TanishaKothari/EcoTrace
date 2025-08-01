@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, TrendingUp, TrendingDown, Minus, Zap, Droplets, Factory, Truck, Package, Recycle, Leaf, Plus, Search, Camera, BarChart3 } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Minus, Zap, Droplets, Factory, Truck, Package, Recycle, Leaf, Plus, Search, Camera, BarChart3, Clock } from 'lucide-react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -64,6 +64,42 @@ export default function ProductComparison({ products, onRemoveProduct, onClose, 
   const [newProductQuery, setNewProductQuery] = useState('');
   const [queryType, setQueryType] = useState<'name' | 'url'>('name');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isSavingComparison, setIsSavingComparison] = useState(false);
+
+  const saveComparisonToHistory = async () => {
+    if (products.length < 2) {
+      setErrorMessage('Need at least 2 products to save comparison');
+      return;
+    }
+
+    setIsSavingComparison(true);
+    try {
+      const response = await fetch('http://localhost:8000/history/comparison', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          products: products.map(p => p.analysis),
+          notes: `Comparison of ${products.map(p => p.analysis.product_info.name).join(', ')}`
+        }),
+      });
+
+      if (response.ok) {
+        setErrorMessage('');
+        // Show success message briefly
+        setErrorMessage('✅ Comparison saved to history!');
+        setTimeout(() => setErrorMessage(''), 3000);
+      } else {
+        throw new Error('Failed to save comparison');
+      }
+    } catch (error) {
+      console.error('Error saving comparison:', error);
+      setErrorMessage('Failed to save comparison to history');
+    } finally {
+      setIsSavingComparison(false);
+    }
+  };
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
@@ -157,12 +193,24 @@ export default function ProductComparison({ products, onRemoveProduct, onClose, 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Product Comparison</h2>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-        >
-          <X className="w-5 h-5 text-gray-500" />
-        </button>
+        <div className="flex items-center space-x-2">
+          {products.length >= 2 && (
+            <button
+              onClick={saveComparisonToHistory}
+              disabled={isSavingComparison}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+            >
+              <Clock className="w-4 h-4" />
+              <span>{isSavingComparison ? 'Saving...' : 'Save to History'}</span>
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
       </div>
 
       {/* Add Product Form */}

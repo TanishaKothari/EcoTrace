@@ -12,7 +12,12 @@ import logging
 from services.ollama_service import OllamaService
 from services.product_analyzer import ProductAnalyzer
 from services.barcode_service import BarcodeService
+from services.history_service import history_service
 from models.eco_score import EcoScoreResponse, ProductAnalysis
+from models.history import (
+    HistoryFilter, HistoryResponse, JourneyResponse,
+    AnalysisType, HistoryEntry, ComparisonHistoryEntry
+)
 
 logger = logging.getLogger(__name__)
 
@@ -64,30 +69,49 @@ async def health_check():
         }
 
 @app.post("/analyze/product", response_model=EcoScoreResponse)
-async def analyze_product(request: ProductRequest):
+async def analyze_product(request: ProductRequest, user_session: Optional[str] = None):
     """Analyze a product by name or URL"""
     try:
         if request.query_type == "url":
             analysis = await product_analyzer.analyze_from_url(request.query)
+            analysis_type = AnalysisType.URL_ANALYSIS
         else:
             analysis = await product_analyzer.analyze_from_name(request.query)
-        
+            analysis_type = AnalysisType.PRODUCT_SEARCH
+
+        # Save to history
+        history_service.save_analysis(
+            query=request.query,
+            analysis=analysis.analysis,
+            analysis_type=analysis_type,
+            user_session=user_session
+        )
+
         return analysis
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 @app.post("/analyze/barcode", response_model=EcoScoreResponse)
-async def analyze_barcode(request: BarcodeRequest):
+async def analyze_barcode(request: BarcodeRequest, user_session: Optional[str] = None):
     """Analyze a product by barcode"""
     try:
         # First get product info from barcode
         product_info = await barcode_service.get_product_info(request.barcode)
-        
+
         if not product_info:
             raise HTTPException(status_code=404, detail="Product not found for this barcode")
-        
+
         # Then analyze the product
         analysis = await product_analyzer.analyze_from_product_info(product_info)
+
+        # Save to history
+        history_service.save_analysis(
+            query=request.barcode,
+            analysis=analysis.analysis,
+            analysis_type=AnalysisType.BARCODE_SCAN,
+            user_session=user_session
+        )
+
         return analysis
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Barcode analysis failed: {str(e)}")
@@ -129,6 +153,106 @@ async def analyze_barcode_image(file: UploadFile = File(...)):
         import traceback
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Image analysis failed: {str(e)}")
+
+# History and Journey Endpoints
+
+@app.get("/history", response_model=HistoryResponse)
+async def get_analysis_history(
+    analysis_type: Optional[str] = None,
+    category: Optional[str] = None,
+    min_eco_score: Optional[int] = None,
+    max_eco_score: Optional[int] = None,
+    limit: int = 50,
+    offset: int = 0,
+    user_session: Optional[str] = None
+):
+    """Get analysis history with optional filters"""
+    try:
+        # Convert string to enum if provided
+        analysis_type_enum = None
+        if analysis_type:
+            try:
+                analysis_type_enum = AnalysisType(analysis_type)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Invalid analysis_type: {analysis_type}")
+
+        filter_options = HistoryFilter(
+            analysis_type=analysis_type_enum,
+            category=category,
+            min_eco_score=min_eco_score,
+            max_eco_score=max_eco_score,
+            limit=limit,
+            offset=offset
+        )
+
+        entries, total_count = history_service.get_history(filter_options, user_session)
+        comparisons, _ = history_service.get_comparisons(limit=10, user_session=user_session)
+
+        return HistoryResponse(
+            entries=entries,
+            comparisons=comparisons,
+            total_count=total_count,
+            has_more=total_count > offset + limit
+        )
+    except Exception as e:
+        logger.error(f"Error getting history: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get history: {str(e)}")
+
+@app.get("/journey", response_model=JourneyResponse)
+async def get_eco_journey(user_session: Optional[str] = None):
+    """Get comprehensive eco journey data and insights"""
+    try:
+        journey = history_service.get_eco_journey(user_session)
+
+        # Generate AI insights based on journey data
+        insights = []
+        stats = journey.stats
+
+        if stats.total_analyses > 0:
+            insights.append(f"You've analyzed {stats.total_analyses} products with an average EcoScore of {stats.average_eco_score:.1f}")
+
+            if stats.improvement_trend > 5:
+                insights.append("🎉 Great progress! Your product choices are getting more eco-friendly over time")
+            elif stats.improvement_trend < -5:
+                insights.append("💡 Consider focusing on higher-scoring products to improve your eco impact")
+
+            if stats.best_eco_score >= 90:
+                insights.append("🌟 Excellent! You've found some truly sustainable products")
+
+            if len(stats.favorite_categories) >= 3:
+                insights.append(f"You're exploring diverse categories: {', '.join(stats.favorite_categories[:3])}")
+        else:
+            insights.append("Start your eco journey by analyzing your first product!")
+
+        return JourneyResponse(
+            journey=journey,
+            insights=insights
+        )
+    except Exception as e:
+        logger.error(f"Error getting eco journey: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get eco journey: {str(e)}")
+
+class ComparisonRequest(BaseModel):
+    products: list[ProductAnalysis]
+    notes: Optional[str] = None
+
+@app.post("/history/comparison")
+async def save_comparison(request: ComparisonRequest, user_session: Optional[str] = None):
+    """Save a product comparison to history"""
+    try:
+        if len(request.products) < 2 or len(request.products) > 3:
+            raise HTTPException(status_code=400, detail="Comparison must include 2-3 products")
+
+        comparison_id = history_service.save_comparison(
+            products=request.products,
+            user_session=user_session,
+            notes=request.notes
+        )
+
+        return {"success": True, "comparison_id": comparison_id}
+    except Exception as e:
+        logger.error(f"Error saving comparison: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save comparison: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
