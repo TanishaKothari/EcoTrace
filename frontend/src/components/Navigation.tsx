@@ -62,7 +62,7 @@ export default function Navigation() {
           {/* Stats Badge (optional) */}
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <BarChart3 className="w-4 h-4" />
-            <span>Track your impact</span>
+            <span>Real-time Analysis</span>
           </div>
         </div>
       </div>
