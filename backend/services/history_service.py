@@ -1,5 +1,6 @@
 import json
 import uuid
+import os
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from collections import defaultdict, Counter
@@ -13,14 +14,67 @@ from models.eco_score import ProductAnalysis
 
 class HistoryService:
     """Service for managing analysis history and eco journey tracking"""
-    
-    def __init__(self):
-        # In-memory storage (replace with database in production)
-        self.history_entries: List[HistoryEntry] = []
-        self.comparison_entries: List[ComparisonHistoryEntry] = []
-        
-    def save_analysis(self, query: str, analysis: ProductAnalysis, 
-                     analysis_type: AnalysisType, user_session: Optional[str] = None) -> str:
+
+    def __init__(self, data_dir: str = "data"):
+        # Persistent file storage
+        self.data_dir = data_dir
+        self.history_file = os.path.join(data_dir, "history_entries.json")
+        self.comparison_file = os.path.join(data_dir, "comparison_entries.json")
+
+        # Ensure data directory exists
+        os.makedirs(data_dir, exist_ok=True)
+
+        # Load existing data
+        self.history_entries: List[HistoryEntry] = self._load_history_entries()
+        self.comparison_entries: List[ComparisonHistoryEntry] = self._load_comparison_entries()
+
+    def _load_history_entries(self) -> List[HistoryEntry]:
+        """Load history entries from file"""
+        if not os.path.exists(self.history_file):
+            return []
+
+        try:
+            with open(self.history_file, 'r') as f:
+                data = json.load(f)
+                return [HistoryEntry(**entry) for entry in data]
+        except (json.JSONDecodeError, FileNotFoundError, Exception) as e:
+            print(f"Error loading history entries: {e}")
+            return []
+
+    def _load_comparison_entries(self) -> List[ComparisonHistoryEntry]:
+        """Load comparison entries from file"""
+        if not os.path.exists(self.comparison_file):
+            return []
+
+        try:
+            with open(self.comparison_file, 'r') as f:
+                data = json.load(f)
+                return [ComparisonHistoryEntry(**entry) for entry in data]
+        except (json.JSONDecodeError, FileNotFoundError, Exception) as e:
+            print(f"Error loading comparison entries: {e}")
+            return []
+
+    def _save_history_entries(self):
+        """Save history entries to file"""
+        try:
+            with open(self.history_file, 'w') as f:
+                data = [entry.model_dump() for entry in self.history_entries]
+                json.dump(data, f, indent=2, default=str)
+        except Exception as e:
+            print(f"Error saving history entries: {e}")
+
+    def _save_comparison_entries(self):
+        """Save comparison entries to file"""
+        try:
+            with open(self.comparison_file, 'w') as f:
+                data = [entry.model_dump() for entry in self.comparison_entries]
+                json.dump(data, f, indent=2, default=str)
+        except Exception as e:
+            print(f"Error saving comparison entries: {e}")
+
+    def save_analysis(self, query: str, analysis: ProductAnalysis,
+                     analysis_type: AnalysisType, user_session: Optional[str] = None,
+                     is_comparison_analysis: bool = False) -> str:
         """Save a new analysis to history"""
         entry_id = str(uuid.uuid4())
         entry = HistoryEntry(
@@ -29,13 +83,15 @@ class HistoryService:
             analysis_type=analysis_type,
             query=query,
             analysis=analysis,
-            user_session=user_session
+            user_session=user_session,
+            is_comparison_analysis=is_comparison_analysis
         )
         self.history_entries.append(entry)
+        self._save_history_entries()  # Persist to file
         return entry_id
     
-    def save_comparison(self, products: List[ProductAnalysis], 
-                       user_session: Optional[str] = None, 
+    def save_comparison(self, products: List[ProductAnalysis],
+                       user_session: Optional[str] = None,
                        notes: Optional[str] = None) -> str:
         """Save a product comparison to history"""
         entry_id = str(uuid.uuid4())
@@ -47,6 +103,7 @@ class HistoryService:
             user_session=user_session
         )
         self.comparison_entries.append(entry)
+        self._save_comparison_entries()  # Persist to file
         return entry_id
     
     def get_history(self, filter_options: HistoryFilter, 
@@ -104,7 +161,7 @@ class HistoryService:
         category_breakdown = self._calculate_category_stats(user_entries)
         
         # Generate timeline
-        timeline = self._generate_timeline(user_entries)
+        timeline = self._generate_timeline(user_entries, user_comparisons)
         
         # Generate milestones
         milestones = self._generate_milestones(stats, user_entries)
@@ -153,13 +210,19 @@ class HistoryService:
         
         return filtered
     
-    def _calculate_journey_stats(self, entries: List[HistoryEntry], 
+    def _calculate_journey_stats(self, entries: List[HistoryEntry],
                                 comparisons: List[ComparisonHistoryEntry]) -> JourneyStats:
         """Calculate journey statistics"""
         if not entries:
             return JourneyStats()
-        
-        eco_scores = [entry.analysis.eco_score for entry in entries]
+
+        # Filter out comparison analyses for statistics (but keep them for reference)
+        regular_entries = [entry for entry in entries if not entry.is_comparison_analysis]
+
+        if not regular_entries:
+            return JourneyStats()
+
+        eco_scores = [entry.analysis.eco_score for entry in regular_entries]
         
         # Calculate improvement trend (compare first half vs second half)
         improvement_trend = 0.0
@@ -169,20 +232,20 @@ class HistoryService:
             second_half_avg = statistics.mean(eco_scores[mid_point:])
             improvement_trend = second_half_avg - first_half_avg
         
-        # Calculate favorite categories
-        categories = [entry.analysis.product_info.category for entry in entries 
+        # Calculate favorite categories (use regular entries only)
+        categories = [entry.analysis.product_info.category for entry in regular_entries
                      if entry.analysis.product_info.category]
         category_counts = Counter(categories)
         favorite_categories = [cat for cat, count in category_counts.most_common(5)]
-        
-        # Calculate days active
+
+        # Calculate days active (use all entries including comparison analyses for activity tracking)
         timestamps = [entry.timestamp for entry in entries]
         first_date = min(timestamps)
         last_date = max(timestamps)
         days_active = (last_date - first_date).days + 1
-        
+
         return JourneyStats(
-            total_analyses=len(entries),
+            total_analyses=len(regular_entries),  # Only count regular analyses
             total_comparisons=len(comparisons),
             average_eco_score=statistics.mean(eco_scores),
             best_eco_score=max(eco_scores),
@@ -190,15 +253,18 @@ class HistoryService:
             favorite_categories=favorite_categories,
             improvement_trend=improvement_trend,
             days_active=days_active,
-            first_analysis_date=first_date,
-            last_analysis_date=last_date
+            first_analysis_date=min([entry.timestamp for entry in regular_entries]) if regular_entries else None,
+            last_analysis_date=max([entry.timestamp for entry in regular_entries]) if regular_entries else None
         )
     
     def _calculate_category_stats(self, entries: List[HistoryEntry]) -> List[CategoryStats]:
         """Calculate statistics by category"""
         category_data = defaultdict(list)
-        
-        for entry in entries:
+
+        # Only use regular analyses for category stats
+        regular_entries = [entry for entry in entries if not entry.is_comparison_analysis]
+
+        for entry in regular_entries:
             category = entry.analysis.product_info.category or "Unknown"
             category_data[category].append({
                 'score': entry.analysis.eco_score,
@@ -233,10 +299,13 @@ class HistoryService:
         category_stats.sort(key=lambda x: x.count, reverse=True)
         return category_stats
     
-    def _generate_timeline(self, entries: List[HistoryEntry]) -> List[TimelineEntry]:
+    def _generate_timeline(self, entries: List[HistoryEntry], comparisons: List[ComparisonHistoryEntry]) -> List[TimelineEntry]:
         """Generate timeline entries for visualization"""
         timeline = []
-        for entry in entries:
+        # Only include regular analyses in timeline
+        regular_entries = [entry for entry in entries if not entry.is_comparison_analysis]
+
+        for entry in regular_entries:
             timeline.append(TimelineEntry(
                 date=entry.timestamp,
                 eco_score=entry.analysis.eco_score,
@@ -244,7 +313,19 @@ class HistoryService:
                 category=entry.analysis.product_info.category,
                 analysis_type=entry.analysis_type
             ))
-        
+
+        # Add comparison entries to timeline
+        for comparison in comparisons:
+            product_names = [product.product_info.name for product in comparison.products]
+            avg_score = sum(product.eco_score for product in comparison.products) / len(comparison.products)
+            timeline.append(TimelineEntry(
+                date=comparison.timestamp,
+                eco_score=int(avg_score),  # Average score of compared products
+                product_name=f"Compared {', '.join(product_names[:2])}{'...' if len(product_names) > 2 else ''}",
+                category=None,  # Comparisons don't have a single category
+                analysis_type=AnalysisType.COMPARISON
+            ))
+
         # Sort by date
         timeline.sort(key=lambda x: x.date)
         return timeline

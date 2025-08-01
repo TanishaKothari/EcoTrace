@@ -19,6 +19,7 @@ class HistoryEntry(BaseModel):
     query: str = Field(..., description="Original search query or barcode")
     analysis: ProductAnalysis
     user_session: Optional[str] = None  # For future user tracking
+    is_comparison_analysis: bool = False  # Flag to mark analyses done for comparisons
     
 class ComparisonHistoryEntry(BaseModel):
     """History entry for product comparisons"""

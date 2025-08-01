@@ -70,7 +70,7 @@ export default function HistoryPage() {
       case AnalysisType.URL_ANALYSIS:
         return <div className="w-4 h-4 text-blue-500">🔗</div>;
       case AnalysisType.COMPARISON:
-        return <div className="w-4 h-4 text-purple-500">⚖️</div>;
+        return <BarChart3 className="w-4 h-4 text-purple-500" />;
       default:
         return <Search className="w-4 h-4" />;
     }
@@ -222,6 +222,15 @@ export default function HistoryPage() {
                             <span className="text-sm text-gray-500 capitalize">
                               {entry.analysis_type.replace('_', ' ')}
                             </span>
+                            {entry.is_comparison_analysis && (
+                              <>
+                                <span className="text-sm text-gray-400">•</span>
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  <BarChart3 className="w-3 h-3 mr-1" />
+                                  For Comparison
+                                </span>
+                              </>
+                            )}
                             <span className="text-sm text-gray-400">•</span>
                             <span className="text-sm text-gray-500">{formatDate(entry.timestamp)}</span>
                           </div>
@@ -300,7 +309,9 @@ export default function HistoryPage() {
                     <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
                     {journeyData.journey.timeline.map((entry, index) => (
                       <div key={index} className="relative flex items-center space-x-4 pb-6">
-                        <div className="relative z-10 w-8 h-8 bg-white border-2 border-gray-300 rounded-full flex items-center justify-center">
+                        <div className={`relative z-10 w-8 h-8 bg-white border-2 rounded-full flex items-center justify-center ${
+                          entry.analysis_type === 'comparison' ? 'border-purple-300 bg-purple-50' : 'border-gray-300'
+                        }`}>
                           {getAnalysisTypeIcon(entry.analysis_type)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -308,14 +319,19 @@ export default function HistoryPage() {
                             <div>
                               <p className="font-medium text-gray-900">{entry.product_name}</p>
                               <p className="text-sm text-gray-500">{formatDate(entry.date)}</p>
-                              {entry.category && (
+                              {entry.analysis_type === 'comparison' && (
+                                <span className="inline-block bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded mt-1">
+                                  Product Comparison
+                                </span>
+                              )}
+                              {entry.category && entry.analysis_type !== 'comparison' && (
                                 <span className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded mt-1">
                                   {entry.category}
                                 </span>
                               )}
                             </div>
                             <div className={`text-lg font-bold ${getScoreColor(entry.eco_score)}`}>
-                              {entry.eco_score}
+                              {entry.analysis_type === 'comparison' ? `${entry.eco_score} avg` : entry.eco_score}
                             </div>
                           </div>
                         </div>

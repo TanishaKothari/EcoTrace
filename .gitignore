@@ -87,6 +87,9 @@ frontend/yarn.lock
 *.sqlite
 *.sqlite3
 
+# User Data & Storage
+backend/data/
+
 # Environment variables
 .env
 .env.local

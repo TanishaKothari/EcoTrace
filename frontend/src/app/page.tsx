@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Camera, Leaf, BarChart3, Globe, Recycle } from 'lucide-react';
 import ProductSearch from '@/components/ProductSearch';
 import BarcodeScanner from '@/components/BarcodeScanner';
@@ -46,6 +46,31 @@ export default function Home() {
     setComparisonProducts(prev => prev.filter(p => p.id !== productId));
   };
 
+  // Auto-save comparisons to history when 2+ products are compared
+  useEffect(() => {
+    const saveComparisonToHistory = async () => {
+      if (comparisonProducts.length >= 2) {
+        try {
+          await fetch('http://localhost:8000/history/comparison', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              products: comparisonProducts.map(p => p.analysis),
+              notes: `Auto-saved comparison of ${comparisonProducts.map(p => p.analysis.product_info.name).join(', ')}`
+            }),
+          });
+          console.log('Comparison auto-saved to history');
+        } catch (error) {
+          console.error('Failed to auto-save comparison:', error);
+        }
+      }
+    };
+
+    saveComparisonToHistory();
+  }, [comparisonProducts]);
+
   const addProductToComparison = async (query: string, queryType: 'name' | 'url') => {
     if (comparisonProducts.length >= 3) {
       throw new Error('Maximum of 3 products can be compared');
@@ -61,6 +86,7 @@ export default function Home() {
         body: JSON.stringify({
           query: query,
           query_type: queryType,
+          is_comparison_analysis: true  // Mark as comparison analysis
         }),
       });
 

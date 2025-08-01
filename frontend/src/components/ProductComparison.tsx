@@ -64,42 +64,7 @@ export default function ProductComparison({ products, onRemoveProduct, onClose, 
   const [newProductQuery, setNewProductQuery] = useState('');
   const [queryType, setQueryType] = useState<'name' | 'url'>('name');
   const [errorMessage, setErrorMessage] = useState('');
-  const [isSavingComparison, setIsSavingComparison] = useState(false);
 
-  const saveComparisonToHistory = async () => {
-    if (products.length < 2) {
-      setErrorMessage('Need at least 2 products to save comparison');
-      return;
-    }
-
-    setIsSavingComparison(true);
-    try {
-      const response = await fetch('http://localhost:8000/history/comparison', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          products: products.map(p => p.analysis),
-          notes: `Comparison of ${products.map(p => p.analysis.product_info.name).join(', ')}`
-        }),
-      });
-
-      if (response.ok) {
-        setErrorMessage('');
-        // Show success message briefly
-        setErrorMessage('✅ Comparison saved to history!');
-        setTimeout(() => setErrorMessage(''), 3000);
-      } else {
-        throw new Error('Failed to save comparison');
-      }
-    } catch (error) {
-      console.error('Error saving comparison:', error);
-      setErrorMessage('Failed to save comparison to history');
-    } finally {
-      setIsSavingComparison(false);
-    }
-  };
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
@@ -195,14 +160,10 @@ export default function ProductComparison({ products, onRemoveProduct, onClose, 
         <h2 className="text-2xl font-bold text-gray-900">Product Comparison</h2>
         <div className="flex items-center space-x-2">
           {products.length >= 2 && (
-            <button
-              onClick={saveComparisonToHistory}
-              disabled={isSavingComparison}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
-            >
+            <div className="flex items-center space-x-2 text-sm text-green-600">
               <Clock className="w-4 h-4" />
-              <span>{isSavingComparison ? 'Saving...' : 'Save to History'}</span>
-            </button>
+              <span>Auto-saved to history</span>
+            </div>
           )}
           <button
             onClick={onClose}

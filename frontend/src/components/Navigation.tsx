@@ -60,7 +60,7 @@ export default function Navigation() {
           </div>
 
           {/* Stats Badge (optional) */}
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
+          <div className="hidden md:flex items-center space-x-2 text-sm text-gray-500">
             <BarChart3 className="w-4 h-4" />
             <span>Real-time Analysis</span>
           </div>

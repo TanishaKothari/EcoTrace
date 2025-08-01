@@ -40,6 +40,7 @@ barcode_service = BarcodeService()
 class ProductRequest(BaseModel):
     query: str  # Can be product name or URL
     query_type: str = "name"  # "name" or "url"
+    is_comparison_analysis: bool = False  # Flag to mark analyses done for comparisons
 
 class BarcodeRequest(BaseModel):
     barcode: str
@@ -84,7 +85,8 @@ async def analyze_product(request: ProductRequest, user_session: Optional[str] =
             query=request.query,
             analysis=analysis.analysis,
             analysis_type=analysis_type,
-            user_session=user_session
+            user_session=user_session,
+            is_comparison_analysis=request.is_comparison_analysis
         )
 
         return analysis
