@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Search, Link, Loader2 } from 'lucide-react';
+import { getAuthHeaders } from '@/utils/userToken';
 
 interface ProductSearchProps {
   onAnalysis: (result: any) => void;
@@ -76,9 +77,7 @@ export default function ProductSearch({ onAnalysis, onLoading }: ProductSearchPr
     try {
       const response = await fetch('http://localhost:8000/analyze/product', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           query: query.trim(),
           query_type: queryType,

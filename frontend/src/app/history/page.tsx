@@ -5,6 +5,7 @@ import { Clock, TrendingUp, Award, Calendar, Filter, Search, BarChart3 } from 'l
 import { HistoryResponse, JourneyResponse, HistoryFilter, AnalysisType } from '@/types/history';
 import { EcoScoreDisplay } from '@/components/EcoScoreDisplay';
 import JourneyAnalytics from '@/components/JourneyAnalytics';
+import { getAuthHeaders } from '@/utils/userToken';
 
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState<HistoryResponse | null>(null);
@@ -31,7 +32,9 @@ export default function HistoryPage() {
       if (filters.limit) params.append('limit', filters.limit.toString());
       if (filters.offset) params.append('offset', filters.offset.toString());
 
-      const response = await fetch(`http://localhost:8000/history?${params}`);
+      const response = await fetch(`http://localhost:8000/history?${params}`, {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       setHistoryData(data);
     } catch (error) {
@@ -41,7 +44,9 @@ export default function HistoryPage() {
 
   const fetchJourneyData = async () => {
     try {
-      const response = await fetch('http://localhost:8000/journey');
+      const response = await fetch('http://localhost:8000/journey', {
+        headers: getAuthHeaders()
+      });
       const data = await response.json();
       setJourneyData(data);
       setLoading(false);

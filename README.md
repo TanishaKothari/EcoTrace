@@ -14,14 +14,17 @@ EcoTrace is a comprehensive web application that reveals the hidden environmenta
 - **Interactive Charts**: Visual comparison of impact factors
 
 ### 📈 Analysis History & Eco Journey
-- **Complete History Tracking**: Automatic saving of all product analyses and comparisons with persistent storage
+- **Complete History Tracking**: Automatic saving of all product analyses and comparisons with secure database storage
 - **Journey Analytics**: Track your environmental awareness progress over time with interactive charts
 - **Smart Timeline**: Chronological view of analyses and comparisons with visual indicators
 - **Intent-Based Statistics**: Separate tracking for regular analyses vs. comparison analyses
 - **Visual Indicators**: Clear "For Comparison" tags and purple styling for comparison entries
 - **Category Performance**: Detailed breakdown of performance across different product categories
 - **Milestone Achievements**: Gamified progress tracking with eco-friendly goals
-- **Persistent Data**: History survives server restarts with file-based storage
+- **Anonymous User Sessions**: Secure, persistent sessions without requiring account creation
+- **User Data Isolation**: Each user only sees their own data with cryptographic token validation
+- **Persistent Data**: SQLite database ensures data survives server restarts and scaling
+- **Browser-based Storage**: History persists in browser localStorage (lost if browser data is cleared)
 
 ### 📊 EcoScore System
 - **1-100 Scale**: Clear sustainability rating system
@@ -41,12 +44,12 @@ EcoTrace is a comprehensive web application that reveals the hidden environmenta
 
 ### Backend
 - **Python FastAPI**: High-performance API framework with CORS support
+- **SQLAlchemy**: Modern ORM with SQLite database for data persistence
 - **Pydantic** for data validation and type safety
 - **httpx** for HTTP requests and web scraping
 - **BeautifulSoup4** for web scraping and content extraction
 - **OpenCV** & **pyzbar** for barcode scanning and image processing
 - **Ollama3**: Local AI model for intelligent environmental analysis
-- **File-based storage**: Persistent JSON storage for history and journey data
 
 ### Frontend
 - **React 19** with **Next.js 15** and App Router
@@ -95,6 +98,8 @@ source venv/bin/activate
 python main.py
 ```
 The API will be available at `http://localhost:8000`
+- Database and tables are created automatically on first startup
+- No manual database setup required
 
 2. **Start the frontend development server**
 ```bash
@@ -115,9 +120,12 @@ Once the backend is running, visit `http://localhost:8000/docs` for interactive 
 - `POST /analyze/barcode/image` - Extract and analyze barcode from image
 
 #### History & Journey Endpoints
-- `GET /history` - Get analysis history with optional filters and pagination
-- `GET /journey` - Get comprehensive eco journey data with analytics and insights
+- `GET /history` - Get analysis history with optional filters and pagination (user-specific)
+- `GET /journey` - Get comprehensive eco journey data with analytics and insights (user-specific)
 - `POST /history/comparison` - Save product comparison to history (auto-called by frontend)
+
+#### Authentication Endpoints
+- `POST /auth/token` - Generate secure anonymous user token
 
 ## 🎯 Usage
 
@@ -138,12 +146,31 @@ Once the backend is running, visit `http://localhost:8000/docs` for interactive 
 - **History Tab**: Complete journey dashboard with Recent Analyses, Category Breakdown, Timeline, and Analytics
 - **Mobile Responsive**: Optimized experience across all devices with adaptive navigation
 
-## 🔄 Data Persistence & Smart Tracking
+### 📱 Session Management
+- **Automatic token generation**: First visit creates a secure anonymous session
+- **Persistent across browser sessions**: History survives browser restarts
+- **⚠️ Important**: Clearing browser data or switching devices will start a new session and lose access to previous history
+- **Privacy-focused**: No personal information required or stored
 
-### Persistent Storage
-- **File-based storage** in `backend/data/` directory ensures history survives server restarts
-- **JSON format** for easy debugging and future database migration
-- **Automatic backups** with incremental saving on each new analysis or comparison
+## 🔄 Data Persistence & Security
+
+### Database Architecture
+- **SQLite database** automatically created at `backend/data/ecotrace.db` on first startup
+- **Proper schema** with Users, HistoryEntries, and ComparisonEntries tables
+- **Foreign key relationships** ensuring data integrity
+
+### Anonymous User Security
+- **Cryptographically secure tokens** with HMAC-SHA256 signatures
+- **Token validation** on every request to prevent forgery
+- **Hashed token storage** in database for security
+- **User data isolation** - each user only sees their own data
+- **No expiration** for persistent anonymous history
+
+### ⚠️ Anonymous Session Limitations
+- **Browser dependency**: History is tied to browser's localStorage token
+- **Data loss scenarios**: Clearing browser data, switching devices, or incognito mode will result in loss of access to previous history
+- **No cross-device sync**: Each device/browser maintains separate anonymous sessions
+- **Privacy by design**: This limitation is intentional to maintain user anonymity without requiring accounts
 
 ### Intent-Based Analytics
 - **Regular analyses** count toward user statistics and appear in timeline

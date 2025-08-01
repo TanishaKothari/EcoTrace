@@ -6,6 +6,7 @@ import ProductSearch from '@/components/ProductSearch';
 import BarcodeScanner from '@/components/BarcodeScanner';
 import EcoScoreDisplay from '@/components/EcoScoreDisplay';
 import ProductComparison from '@/components/ProductComparison';
+import { getAuthHeaders } from '@/utils/userToken';
 
 interface ImpactFactor {
   name: string;
@@ -53,9 +54,7 @@ export default function Home() {
         try {
           await fetch('http://localhost:8000/history/comparison', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: getAuthHeaders(),
             body: JSON.stringify({
               products: comparisonProducts.map(p => p.analysis),
               notes: `Auto-saved comparison of ${comparisonProducts.map(p => p.analysis.product_info.name).join(', ')}`
@@ -80,9 +79,7 @@ export default function Home() {
     try {
       const response = await fetch('http://localhost:8000/analyze/product', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           query: query,
           query_type: queryType,
