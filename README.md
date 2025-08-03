@@ -107,21 +107,21 @@ npm run dev
 ```
 The application will be available at `http://localhost:3000`
 
-## Getting Started
+## Usage Guide
 
-### For Immediate Use (Anonymous Mode)
+### Anonymous Mode (No Account Required)
 1. **Visit the application** at `http://localhost:3000`
 2. **Start analyzing** products immediately - no registration required
 3. **Use all features** including product search, barcode scanning, and comparisons
 4. **Note**: Analysis history will not be saved
 
-### For Full Experience (Account Mode)
+### Account Mode (Full Experience)
 1. **Click "Sign In"** in the top navigation
 2. **Create an account** with email and password
 3. **Enjoy persistent history** and journey analytics
 4. **Access from any device** with your account credentials
 
-### Key Benefits of Creating an Account
+### Benefits of Creating an Account
 - **📊 Complete History**: All your analyses and comparisons are saved
 - **📈 Journey Analytics**: Track your environmental awareness progress over time
 - **🎯 Goal Tracking**: Set and monitor eco-friendly milestones
