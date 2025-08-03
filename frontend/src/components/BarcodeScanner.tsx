@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Camera, Upload, Scan, X } from 'lucide-react';
 import Webcam from 'react-webcam';
+import { getAuthHeaders, getUserToken } from '@/utils/userToken';
 
 interface BarcodeScannerProps {
   onAnalysis: (result: any) => void;
@@ -18,10 +19,12 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
   const analyzeBarcode = async (barcodeValue: string) => {
     onLoading(true);
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch('http://localhost:8000/analyze/barcode', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
         },
         body: JSON.stringify({
           barcode: barcodeValue,
@@ -29,12 +32,28 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       });
 
       if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`;
         try {
-          const errorData = await response.json();
-          throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
-        } catch (parseError) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const responseText = await response.text();
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.detail || errorMessage;
+          } catch (jsonError) {
+            // If JSON parsing fails, provide user-friendly messages based on status code
+            if (response.status === 400) {
+              errorMessage = 'Invalid barcode format. Please check the barcode and try again.';
+            } else if (response.status === 404) {
+              errorMessage = 'No product found for this barcode. Please verify the barcode is correct.';
+            } else if (response.status === 500) {
+              errorMessage = 'Server error occurred. Please try again.';
+            } else {
+              errorMessage = responseText || errorMessage;
+            }
+          }
+        } catch (readError) {
+          console.warn('Failed to read error response:', readError);
         }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
@@ -49,6 +68,65 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       onLoading(false);
     }
   };
+
+  const capturePhoto = useCallback(async () => {
+    const imageSrc = webcamRef.current?.getScreenshot();
+    if (!imageSrc) return;
+
+    onLoading(true);
+    try {
+      // Convert base64 data URL to blob using fetch (simpler and more reliable)
+      const response = await fetch(imageSrc);
+      const blob = await response.blob();
+
+      // Ensure it's a JPEG blob with proper MIME type
+      const jpegBlob = new Blob([blob], { type: 'image/jpeg' });
+
+      console.log('Image blob size:', jpegBlob.size, 'type:', jpegBlob.type);
+
+      const formData = new FormData();
+      formData.append('file', jpegBlob, 'barcode.jpg');
+
+      const userToken = await getUserToken();
+      const analysisResponse = await fetch('http://localhost:8000/analyze/image', {
+        method: 'POST',
+        headers: {
+          'X-User-Token': userToken,
+          // Don't set Content-Type for FormData - browser will set it automatically with boundary
+        },
+        body: formData,
+      });
+
+      if (!analysisResponse.ok) {
+        let errorMessage = `HTTP error! status: ${analysisResponse.status}`;
+        try {
+          const responseText = await analysisResponse.text();
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.detail || errorMessage;
+          } catch (jsonError) {
+            // If JSON parsing fails, use the raw text
+            errorMessage = responseText || errorMessage;
+          }
+        } catch (readError) {
+          console.warn('Failed to read error response:', readError);
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result = await analysisResponse.json();
+      onAnalysis(result);
+      setIsScanning(false);
+    } catch (error) {
+      console.error('Camera capture analysis failed:', error);
+      onAnalysis({
+        success: false,
+        error: error instanceof Error ? error.message : 'Camera capture failed',
+      });
+    } finally {
+      onLoading(false);
+    }
+  }, [onAnalysis, onLoading]);
 
   const validateBarcode = (code: string): { isValid: boolean; error?: string } => {
     const trimmedCode = code.trim();
@@ -98,8 +176,13 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       const formData = new FormData();
       formData.append('file', file);
 
+      const userToken = await getUserToken();
       const response = await fetch('http://localhost:8000/analyze/image', {
         method: 'POST',
+        headers: {
+          'X-User-Token': userToken,
+          // Don't set Content-Type for FormData - browser will set it automatically with boundary
+        },
         body: formData,
       });
 
@@ -132,47 +215,6 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       onLoading(false);
     }
   };
-
-  const capturePhoto = useCallback(async () => {
-    const imageSrc = webcamRef.current?.getScreenshot();
-    if (!imageSrc) return;
-
-    onLoading(true);
-    try {
-      // Convert base64 to blob
-      const response = await fetch(imageSrc);
-      const blob = await response.blob();
-      
-      const formData = new FormData();
-      formData.append('file', blob, 'barcode.jpg');
-
-      const analysisResponse = await fetch('http://localhost:8000/analyze/image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!analysisResponse.ok) {
-        try {
-          const errorData = await analysisResponse.json();
-          throw new Error(errorData.detail || `HTTP error! status: ${analysisResponse.status}`);
-        } catch (parseError) {
-          throw new Error(`HTTP error! status: ${analysisResponse.status}`);
-        }
-      }
-
-      const result = await analysisResponse.json();
-      onAnalysis(result);
-      setIsScanning(false);
-    } catch (error) {
-      console.error('Camera capture analysis failed:', error);
-      onAnalysis({
-        success: false,
-        error: error instanceof Error ? error.message : 'Camera capture failed',
-      });
-    } finally {
-      onLoading(false);
-    }
-  }, [onAnalysis, onLoading]);
 
   return (
     <div className="space-y-6">

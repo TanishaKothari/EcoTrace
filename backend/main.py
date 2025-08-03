@@ -216,9 +216,12 @@ async def analyze_product(request: ProductRequest, user_token: str = Header(None
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 @app.post("/analyze/barcode", response_model=EcoScoreResponse)
-async def analyze_barcode(request: BarcodeRequest, user_session: Optional[str] = None):
+async def analyze_barcode(request: BarcodeRequest, user_token: str = Header(None, alias="x-user-token")):
     """Analyze a product by barcode"""
     try:
+        # Get or generate user token
+        if not user_token or not validate_token(user_token):
+            user_token = generate_secure_anonymous_token()
         # First get product info from barcode
         product_info = await barcode_service.get_product_info(request.barcode)
 
@@ -228,12 +231,13 @@ async def analyze_barcode(request: BarcodeRequest, user_session: Optional[str] =
         # Then analyze the product
         analysis = await product_analyzer.analyze_from_product_info(product_info)
 
-        # Save to history
-        history_service.save_analysis(
+        # Save to history using database service
+        database_history_service.save_analysis(
+            user_token=user_token,
             query=request.barcode,
             analysis=analysis.analysis,
             analysis_type=AnalysisType.BARCODE_SCAN,
-            user_session=user_session
+            is_comparison_analysis=False
         )
 
         return analysis
@@ -241,9 +245,12 @@ async def analyze_barcode(request: BarcodeRequest, user_session: Optional[str] =
         raise HTTPException(status_code=500, detail=f"Barcode analysis failed: {str(e)}")
 
 @app.post("/analyze/image")
-async def analyze_barcode_image(file: UploadFile = File(...)):
+async def analyze_barcode_image(file: UploadFile = File(...), user_token: str = Header(None, alias="x-user-token")):
     """Analyze a barcode from an uploaded image"""
     try:
+        # Get or generate user token
+        if not user_token or not validate_token(user_token):
+            user_token = generate_secure_anonymous_token()
         # Read the uploaded file
         contents = await file.read()
         logger.info(f"Received image file: {file.filename}, size: {len(contents)} bytes")
@@ -268,6 +275,16 @@ async def analyze_barcode_image(file: UploadFile = File(...)):
             )
 
         analysis = await product_analyzer.analyze_from_product_info(product_info)
+
+        # Save to history using database service
+        database_history_service.save_analysis(
+            user_token=user_token,
+            query=barcode,
+            analysis=analysis.analysis,
+            analysis_type=AnalysisType.BARCODE_SCAN,
+            is_comparison_analysis=False
+        )
+
         return analysis
     except HTTPException:
         # Re-raise HTTP exceptions as-is

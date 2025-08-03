@@ -56,6 +56,7 @@ EcoTrace is a comprehensive web application that reveals the hidden environmenta
 - **Tailwind CSS** for responsive styling and mobile optimization
 - **Chart.js** with **react-chartjs-2** for interactive analytics dashboards
 - **Lucide React** for icons
+- **react-webcam** for camera integration and barcode scanning
 - **Responsive design** with mobile-first approach and adaptive layouts
 
 
@@ -137,7 +138,7 @@ Once the backend is running, visit `http://localhost:8000/docs` for interactive 
 #### Analysis Endpoints
 - `POST /analyze/product` - Analyze product by name or URL
 - `POST /analyze/barcode` - Analyze product by barcode
-- `POST /analyze/barcode/image` - Extract and analyze barcode from image
+- `POST /analyze/image` - Extract and analyze barcode from uploaded image
 
 #### History & Journey Endpoints
 - `GET /history` - Get analysis history with optional filters and pagination (user-specific)
