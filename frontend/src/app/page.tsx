@@ -137,51 +137,53 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 pt-4 pb-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 pb-8">
         {/* Hero Section */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-green-700 to-blue-700 bg-clip-text text-transparent">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-green-700 to-blue-700 bg-clip-text text-transparent leading-tight">
             Discover the Hidden Environmental Impact
           </h1>
-          <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-gray-700 mb-4 sm:mb-6 max-w-2xl mx-auto px-2">
             Get instant AI-powered analysis of any product's carbon footprint, resource usage,
             and sustainability score. Make informed choices for a better planet.
           </p>
 
           {/* Tab Navigation */}
-          <div className="flex justify-center mb-6">
-            <div className="bg-white rounded-lg p-1 shadow-lg border border-gray-200 flex flex-wrap justify-center">
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <div className="bg-white rounded-lg p-1 shadow-lg border border-gray-200 flex flex-wrap justify-center gap-1">
               <button
                 onClick={() => setActiveTab('search')}
-                className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-md transition-all w-40 ${
+                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base min-w-[100px] sm:w-40 ${
                   activeTab === 'search'
                     ? 'bg-green-600 text-white shadow-md'
                     : 'text-gray-700 hover:text-gray-900'
                 }`}
               >
-                <Search className="h-5 w-5" />
-                <span>Search Product</span>
+                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Search Product</span>
+                <span className="sm:hidden">Search</span>
               </button>
               <button
                 onClick={() => setActiveTab('scan')}
-                className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-md transition-all w-40 ${
+                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base min-w-[100px] sm:w-40 ${
                   activeTab === 'scan'
                     ? 'bg-green-600 text-white shadow-md'
                     : 'text-gray-700 hover:text-gray-900'
                 }`}
               >
-                <Camera className="h-5 w-5" />
-                <span>Scan Barcode</span>
+                <Camera className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">Scan Barcode</span>
+                <span className="sm:hidden">Scan</span>
               </button>
               <button
                 onClick={() => setActiveTab('compare')}
-                className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-md transition-all w-40 relative ${
+                className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base min-w-[100px] sm:w-40 relative ${
                   activeTab === 'compare'
                     ? 'bg-green-600 text-white shadow-md'
                     : 'text-gray-700 hover:text-gray-900'
                 }`}
               >
-                <BarChart3 className="h-5 w-5" />
+                <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span>Compare</span>
                 {comparisonProducts.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">

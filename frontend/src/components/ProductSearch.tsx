@@ -117,15 +117,15 @@ export default function ProductSearch({ onAnalysis, onLoading }: ProductSearchPr
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h3 className="text-lg font-bold text-gray-800 mb-4">Product Analysis</h3>
-        <p className="text-gray-700 mb-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-3 sm:mb-4">Product Analysis</h3>
+        <p className="text-gray-700 mb-4 sm:mb-6 text-sm sm:text-base">
           Enter a product name or paste a product URL to get an environmental impact analysis.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
         <div>
           <label htmlFor="product-query" className="block text-sm font-medium text-gray-800 mb-2">
             Product Name or URL
@@ -136,8 +136,8 @@ export default function ProductSearch({ onAnalysis, onLoading }: ProductSearchPr
               type="text"
               value={query}
               onChange={(e) => handleQueryChange(e.target.value)}
-              placeholder="e.g., iPhone 15 Pro or https://example.com/product"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-600 text-gray-900"
+              placeholder="e.g., iPhone 15 Pro or https://..."
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-500 text-gray-900 text-sm sm:text-base"
             />
             <div className="absolute right-3 top-3">
               {queryType === 'url' ? (
@@ -158,22 +158,23 @@ export default function ProductSearch({ onAnalysis, onLoading }: ProductSearchPr
         <button
           type="submit"
           disabled={!query.trim()}
-          className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
+          className="w-full bg-green-600 text-white py-2 sm:py-3 px-4 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base font-medium"
         >
-          <Search className="h-5 w-5" />
-          <span>Analyze Environmental Impact</span>
+          <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span className="hidden sm:inline">Analyze Environmental Impact</span>
+          <span className="sm:hidden">Analyze Product</span>
         </button>
       </form>
 
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="font-bold text-gray-800 mb-2">Examples:</h4>
-        <div className="space-y-2 text-sm text-gray-700">
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4" />
-            <span>Product names: "Organic cotton t-shirt", "Tesla Model 3", "iPhone 15"</span>
+      <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+        <h4 className="font-bold text-gray-800 mb-2 text-sm sm:text-base">Examples:</h4>
+        <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
+          <div className="flex items-start space-x-2">
+            <Search className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 flex-shrink-0" />
+            <span>Product names: "Organic cotton t-shirt", "Tesla Model 3"</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <Link className="h-4 w-4" />
+          <div className="flex items-start space-x-2">
+            <Link className="h-3 w-3 sm:h-4 sm:w-4 mt-0.5 flex-shrink-0" />
             <span>Product URLs: Amazon, eBay, manufacturer websites</span>
           </div>
         </div>

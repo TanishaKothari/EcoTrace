@@ -67,16 +67,16 @@ export default function Navigation() {
           </Link>
 
           {/* Navigation Links */}
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-2 sm:space-x-8">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
-              
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-green-100 text-green-700'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -84,7 +84,7 @@ export default function Navigation() {
                   title={item.description}
                 >
                   <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
+                  <span className="hidden sm:inline">{item.label}</span>
                 </Link>
               );
             })}
@@ -100,8 +100,8 @@ export default function Navigation() {
 
             {/* User Authentication */}
             {authenticated && userInfo ? (
-              <div className="flex items-center space-x-3">
-                <div className="hidden sm:block text-sm">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="hidden md:block text-sm">
                   <span className="text-gray-600">Welcome, </span>
                   <span className="font-medium text-gray-900">
                     {userInfo.name || userInfo.email}
@@ -109,7 +109,7 @@ export default function Navigation() {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  className="flex items-center space-x-1 px-2 sm:px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
                   title="Sign out"
                 >
                   <LogOut className="w-4 h-4" />
@@ -119,10 +119,10 @@ export default function Navigation() {
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
               >
                 <User className="w-4 h-4" />
-                <span>Sign In</span>
+                <span className="hidden xs:inline">Sign In</span>
               </button>
             )}
           </div>
