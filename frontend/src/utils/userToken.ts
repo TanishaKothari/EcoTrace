@@ -1,8 +1,9 @@
 /**
- * User token management for anonymous users
+ * User token management for anonymous and authenticated users
  */
 
 const USER_TOKEN_KEY = 'ecotrace-user-token';
+const USER_INFO_KEY = 'ecotrace-user-info';
 
 export async function getUserToken(): Promise<string> {
   // Check if we're in browser environment
@@ -45,7 +46,87 @@ export async function generateToken(): Promise<string> {
 export function clearUserToken(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(USER_TOKEN_KEY);
+    localStorage.removeItem(USER_INFO_KEY);
   }
+}
+
+export interface UserInfo {
+  id: string;
+  email: string;
+  name?: string;
+  is_anonymous: boolean;
+  created_at: string;
+  email_verified: boolean;
+}
+
+export function setUserInfo(userInfo: UserInfo): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+  }
+}
+
+export function getUserInfo(): UserInfo | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const userInfoStr = localStorage.getItem(USER_INFO_KEY);
+  if (!userInfoStr) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(userInfoStr);
+  } catch {
+    return null;
+  }
+}
+
+export function isAuthenticated(): boolean {
+  const userInfo = getUserInfo();
+  return userInfo !== null && !userInfo.is_anonymous;
+}
+
+export async function registerUser(email: string, password: string, name?: string) {
+  const response = await fetch('http://localhost:8000/auth/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password, name }),
+  });
+
+  const data = await response.json();
+
+  if (data.success && data.token && data.user) {
+    localStorage.setItem(USER_TOKEN_KEY, data.token);
+    setUserInfo(data.user);
+  }
+
+  return data;
+}
+
+export async function loginUser(email: string, password: string) {
+  const response = await fetch('http://localhost:8000/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await response.json();
+
+  if (data.success && data.token && data.user) {
+    localStorage.setItem(USER_TOKEN_KEY, data.token);
+    setUserInfo(data.user);
+  }
+
+  return data;
+}
+
+export function logoutUser(): void {
+  clearUserToken();
 }
 
 export async function getAuthHeaders(): Promise<Record<string, string>> {

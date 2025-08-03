@@ -14,7 +14,9 @@ from services.ollama_service import OllamaService
 from services.product_analyzer import ProductAnalyzer
 from services.barcode_service import BarcodeService
 from services.database_history_service import database_history_service
+from services.auth_service import auth_service
 from utils.security import generate_secure_anonymous_token, validate_token
+from models.auth import RegisterRequest, LoginRequest, AuthResponse, UserInfo, TokenValidationResponse
 from models.eco_score import EcoScoreResponse, ProductAnalysis
 from models.history import (
     HistoryFilter, HistoryResponse, JourneyResponse,
@@ -70,6 +72,100 @@ async def generate_anonymous_token():
     except Exception as e:
         logger.error(f"Error generating token: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to generate token")
+
+@app.post("/auth/register", response_model=AuthResponse)
+async def register_user(request: RegisterRequest):
+    """Register a new user account"""
+    try:
+        success, message, token = auth_service.register_user(
+            email=request.email,
+            password=request.password,
+            name=request.name
+        )
+
+        user_info = None
+        if success and token:
+            user = auth_service.get_user_by_token(token)
+            if user:
+                user_info = UserInfo(
+                    id=user.id,
+                    email=user.email,
+                    name=user.name,
+                    is_anonymous=user.is_anonymous,
+                    created_at=user.created_at.isoformat(),
+                    email_verified=user.email_verified
+                )
+
+        return AuthResponse(
+            success=success,
+            message=message,
+            token=token,
+            user=user_info
+        )
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Registration failed")
+
+@app.post("/auth/login", response_model=AuthResponse)
+async def login_user(request: LoginRequest):
+    """Login user and return auth token"""
+    try:
+        success, message, token = auth_service.login_user(
+            email=request.email,
+            password=request.password
+        )
+
+        user_info = None
+        if success and token:
+            user = auth_service.get_user_by_token(token)
+            if user:
+                user_info = UserInfo(
+                    id=user.id,
+                    email=user.email,
+                    name=user.name,
+                    is_anonymous=user.is_anonymous,
+                    created_at=user.created_at.isoformat(),
+                    email_verified=user.email_verified
+                )
+
+        return AuthResponse(
+            success=success,
+            message=message,
+            token=token,
+            user=user_info
+        )
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Login failed")
+
+@app.get("/auth/validate", response_model=TokenValidationResponse)
+async def validate_token_endpoint(user_token: str = Header(None, alias="x-user-token")):
+    """Validate user token and return user info"""
+    try:
+        if not user_token:
+            return TokenValidationResponse(valid=False)
+
+        user = auth_service.get_user_by_token(user_token)
+        if not user:
+            return TokenValidationResponse(valid=False)
+
+        user_info = UserInfo(
+            id=user.id,
+            email=user.email or "",
+            name=user.name,
+            is_anonymous=user.is_anonymous,
+            created_at=user.created_at.isoformat(),
+            email_verified=user.email_verified if hasattr(user, 'email_verified') else False
+        )
+
+        return TokenValidationResponse(
+            valid=True,
+            user=user_info,
+            is_authenticated=not user.is_anonymous
+        )
+    except Exception as e:
+        logger.error(f"Token validation error: {str(e)}")
+        return TokenValidationResponse(valid=False)
 
 @app.get("/health")
 async def health_check():

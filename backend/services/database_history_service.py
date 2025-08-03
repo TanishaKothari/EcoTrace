@@ -17,6 +17,7 @@ from models.history import (
 )
 from models.eco_score import ProductAnalysis
 from utils.security import validate_token, hash_token_for_storage, generate_secure_anonymous_token
+from services.auth_service import auth_service
 import uuid
 
 class DatabaseHistoryService:
@@ -58,33 +59,21 @@ class DatabaseHistoryService:
             db.close()
     
     def save_analysis(self, user_token: str, query: str, analysis: ProductAnalysis,
-                     analysis_type: AnalysisType, is_comparison_analysis: bool = False) -> str:
-        """Save a new analysis to history"""
-        # Validate token format and signature
-        if not validate_token(user_token):
-            raise ValueError("Invalid token format or signature")
+                     analysis_type: AnalysisType, is_comparison_analysis: bool = False) -> Optional[str]:
+        """Save a new analysis to history (only for authenticated users)"""
+        # Only save history for authenticated users
+        if not auth_service.is_authenticated_user(user_token):
+            return None  # No history tracking for anonymous users
+
+        user = auth_service.get_user_by_token(user_token)
+        if not user:
+            return None
 
         db = get_db_session()
         try:
-            # Hash token for database lookup
-            token_hash = hash_token_for_storage(user_token)
-
-            # Look up or create user
-            user = db.query(User).filter(User.token_hash == token_hash).first()
-            if not user:
-                # Create new user with hashed token
-                user_id = f"user_{uuid.uuid4().hex[:12]}"
-                user = User(
-                    id=user_id,
-                    token_hash=token_hash,
-                    is_anonymous=True
-                )
-                db.add(user)
-                db.commit()
-            else:
-                # Update last active
-                user.last_active = datetime.utcnow()
-                db.commit()
+            # Update last active
+            user.last_active = datetime.utcnow()
+            db.merge(user)
 
             # Create history entry
             entry_id = str(uuid.uuid4())
@@ -105,33 +94,21 @@ class DatabaseHistoryService:
             db.close()
     
     def save_comparison(self, user_token: str, products: List[ProductAnalysis],
-                       notes: Optional[str] = None) -> str:
-        """Save a product comparison to history"""
-        # Validate token format and signature
-        if not validate_token(user_token):
-            raise ValueError("Invalid token format or signature")
+                       notes: Optional[str] = None) -> Optional[str]:
+        """Save a product comparison to history (only for authenticated users)"""
+        # Only save history for authenticated users
+        if not auth_service.is_authenticated_user(user_token):
+            return None  # No history tracking for anonymous users
+
+        user = auth_service.get_user_by_token(user_token)
+        if not user:
+            return None
 
         db = get_db_session()
         try:
-            # Hash token for database lookup
-            token_hash = hash_token_for_storage(user_token)
-
-            # Look up or create user
-            user = db.query(User).filter(User.token_hash == token_hash).first()
-            if not user:
-                # Create new user with hashed token
-                user_id = f"user_{uuid.uuid4().hex[:12]}"
-                user = User(
-                    id=user_id,
-                    token_hash=token_hash,
-                    is_anonymous=True
-                )
-                db.add(user)
-                db.commit()
-            else:
-                # Update last active
-                user.last_active = datetime.utcnow()
-                db.commit()
+            # Update last active
+            user.last_active = datetime.utcnow()
+            db.merge(user)
 
             # Create comparison entry
             entry_id = str(uuid.uuid4())
@@ -150,20 +127,17 @@ class DatabaseHistoryService:
             db.close()
     
     def get_history(self, user_token: str, filters: Optional[HistoryFilter] = None) -> HistoryResponse:
-        """Get user's analysis history with optional filters"""
-        # Validate token format and signature
-        if not validate_token(user_token):
+        """Get user's analysis history with optional filters (only for authenticated users)"""
+        # Only return history for authenticated users
+        if not auth_service.is_authenticated_user(user_token):
+            return HistoryResponse(entries=[], comparisons=[], total_count=0, has_more=False)
+
+        user = auth_service.get_user_by_token(user_token)
+        if not user:
             return HistoryResponse(entries=[], comparisons=[], total_count=0, has_more=False)
 
         db = get_db_session()
         try:
-            # Hash token for database lookup
-            token_hash = hash_token_for_storage(user_token)
-
-            # Get user by token hash
-            user = db.query(User).filter(User.token_hash == token_hash).first()
-            if not user:
-                return HistoryResponse(entries=[], comparisons=[], total_count=0, has_more=False)
             
             # Build query for history entries
             query = db.query(HistoryEntry).filter(HistoryEntry.user_id == user.id)
@@ -232,20 +206,17 @@ class DatabaseHistoryService:
             db.close()
     
     def get_journey(self, user_token: str) -> JourneyResponse:
-        """Get comprehensive eco journey data for user"""
-        # Validate token format and signature
-        if not validate_token(user_token):
+        """Get comprehensive eco journey data for user (only for authenticated users)"""
+        # Only return journey for authenticated users
+        if not auth_service.is_authenticated_user(user_token):
+            return JourneyResponse(journey=EcoJourney())
+
+        user = auth_service.get_user_by_token(user_token)
+        if not user:
             return JourneyResponse(journey=EcoJourney())
 
         db = get_db_session()
         try:
-            # Hash token for database lookup
-            token_hash = hash_token_for_storage(user_token)
-
-            # Get user by token hash
-            user = db.query(User).filter(User.token_hash == token_hash).first()
-            if not user:
-                return JourneyResponse(journey=EcoJourney())
             
             # Get all entries for this user
             entries = db.query(HistoryEntry).filter(HistoryEntry.user_id == user.id).all()

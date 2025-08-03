@@ -14,17 +14,16 @@ EcoTrace is a comprehensive web application that reveals the hidden environmenta
 - **Interactive Charts**: Visual comparison of impact factors
 
 ### 📈 Analysis History & Eco Journey
-- **Complete History Tracking**: Automatic saving of all product analyses and comparisons with secure database storage
+- **Optional Account System**: Choose between anonymous usage or account-based history tracking
+- **Complete History Tracking**: Automatic saving of all analyses and comparisons for authenticated users
 - **Journey Analytics**: Track your environmental awareness progress over time with interactive charts
 - **Smart Timeline**: Chronological view of analyses and comparisons with visual indicators
 - **Intent-Based Statistics**: Separate tracking for regular analyses vs. comparison analyses
 - **Visual Indicators**: Clear "For Comparison" tags and purple styling for comparison entries
 - **Category Performance**: Detailed breakdown of performance across different product categories
 - **Milestone Achievements**: Gamified progress tracking with eco-friendly goals
-- **Anonymous User Sessions**: Secure, persistent sessions without requiring account creation
 - **User Data Isolation**: Each user only sees their own data with cryptographic token validation
 - **Persistent Data**: SQLite database ensures data survives server restarts and scaling
-- **Browser-based Storage**: History persists in browser localStorage (lost if browser data is cleared)
 
 ### 📊 EcoScore System
 - **1-100 Scale**: Clear sustainability rating system
@@ -108,7 +107,28 @@ npm run dev
 ```
 The application will be available at `http://localhost:3000`
 
-## 📖 API Documentation
+## Getting Started
+
+### For Immediate Use (Anonymous Mode)
+1. **Visit the application** at `http://localhost:3000`
+2. **Start analyzing** products immediately - no registration required
+3. **Use all features** including product search, barcode scanning, and comparisons
+4. **Note**: Analysis history will not be saved
+
+### For Full Experience (Account Mode)
+1. **Click "Sign In"** in the top navigation
+2. **Create an account** with email and password
+3. **Enjoy persistent history** and journey analytics
+4. **Access from any device** with your account credentials
+
+### Key Benefits of Creating an Account
+- **📊 Complete History**: All your analyses and comparisons are saved
+- **📈 Journey Analytics**: Track your environmental awareness progress over time
+- **🎯 Goal Tracking**: Set and monitor eco-friendly milestones
+- **🔄 Cross-Device Sync**: Access your data from any device
+- **📱 Persistent Data**: Never lose your analysis history
+
+## API Documentation
 
 Once the backend is running, visit `http://localhost:8000/docs` for interactive API documentation.
 
@@ -126,6 +146,9 @@ Once the backend is running, visit `http://localhost:8000/docs` for interactive 
 
 #### Authentication Endpoints
 - `POST /auth/token` - Generate secure anonymous user token
+- `POST /auth/register` - Register new user account
+- `POST /auth/login` - Login user and return auth token
+- `GET /auth/validate` - Validate user token and return user info
 
 ## 🎯 Usage
 
@@ -135,22 +158,24 @@ Once the backend is running, visit `http://localhost:8000/docs` for interactive 
 3. **Product Comparison**: Add multiple products to compare their environmental impact side-by-side
 4. **Detailed Analysis**: View comprehensive eco-scores, impact factors, and actionable recommendations
 
-### History & Journey Tracking
-5. **Automatic History**: All analyses and comparisons are automatically saved with persistent storage
+### History & Journey Tracking (Account Required)
+5. **Account-Based History**: Create an account to automatically save all analyses and comparisons
 6. **Eco Journey Dashboard**: Navigate to History page to view your complete environmental awareness journey
 7. **Progress Analytics**: Track improvement over time with interactive charts and timeline visualization
 8. **Category Performance**: Monitor your choices across different product categories
 
 ### Navigation
-- **Analyze Tab**: Main product analysis and comparison interface
-- **History Tab**: Complete journey dashboard with Recent Analyses, Category Breakdown, Timeline, and Analytics
+- **Analyze Tab**: Main product analysis and comparison interface (available to all users)
+- **History Tab**: Complete journey dashboard with Recent Analyses, Category Breakdown, Timeline, and Analytics (requires account)
+- **Authentication**: Sign in/register button in navigation, user info display when logged in
 - **Mobile Responsive**: Optimized experience across all devices with adaptive navigation
 
-### 📱 Session Management
-- **Automatic token generation**: First visit creates a secure anonymous session
-- **Persistent across browser sessions**: History survives browser restarts
-- **⚠️ Important**: Clearing browser data or switching devices will start a new session and lose access to previous history
-- **Privacy-focused**: No personal information required or stored
+### User Account System
+- **Optional Registration**: Create account with email and password for history tracking
+- **Anonymous Mode**: Use immediately without registration (no history saved)
+- **Secure Authentication**: HMAC-signed tokens with password hashing
+- **Privacy Choice**: Users decide whether to create accounts or remain anonymous
+- **Cross-Device Sync**: Account-based history accessible from any device
 
 ## 🔄 Data Persistence & Security
 
@@ -159,18 +184,25 @@ Once the backend is running, visit `http://localhost:8000/docs` for interactive 
 - **Proper schema** with Users, HistoryEntries, and ComparisonEntries tables
 - **Foreign key relationships** ensuring data integrity
 
-### Anonymous User Security
-- **Cryptographically secure tokens** with HMAC-SHA256 signatures
-- **Token validation** on every request to prevent forgery
+### Authentication Security
+- **Dual token system**: Separate tokens for anonymous users and authenticated accounts
+- **HMAC-SHA256 signatures** prevent token forgery for both user types
+- **Password hashing** with salt for secure credential storage
+- **Token validation** on every request to prevent unauthorized access
 - **Hashed token storage** in database for security
 - **User data isolation** - each user only sees their own data
-- **No expiration** for persistent anonymous history
 
-### ⚠️ Anonymous Session Limitations
-- **Browser dependency**: History is tied to browser's localStorage token
-- **Data loss scenarios**: Clearing browser data, switching devices, or incognito mode will result in loss of access to previous history
-- **No cross-device sync**: Each device/browser maintains separate anonymous sessions
-- **Privacy by design**: This limitation is intentional to maintain user anonymity without requiring accounts
+### 🔄 User Mode Comparison
+
+| Feature | Anonymous Mode | Account Mode |
+|---------|---------------|--------------|
+| **Product Analysis** | ✅ Full access | ✅ Full access |
+| **Product Comparison** | ✅ Full access | ✅ Full access |
+| **History Tracking** | ❌ No history saved | ✅ Complete history |
+| **Journey Analytics** | ❌ Not available | ✅ Full analytics |
+| **Cross-Device Access** | ❌ Browser-only | ✅ Any device |
+| **Data Persistence** | ❌ No persistence | ✅ Permanent |
+| **Registration Required** | ❌ None | ✅ Email & password |
 
 ### Intent-Based Analytics
 - **Regular analyses** count toward user statistics and appear in timeline
@@ -178,7 +210,7 @@ Once the backend is running, visit `http://localhost:8000/docs` for interactive 
 - **Smart categorization** distinguishes between research intent vs. comparison intent
 - **Visual indicators** clearly show "For Comparison" tags in history
 
-### Auto-Save Features
+### Auto-Save Features (Account Users Only)
 - **Analyses**: Automatically saved when performed (search, barcode, URL)
 - **Comparisons**: Automatically saved when 2+ products are compared
 - **No manual saving required** - seamless user experience

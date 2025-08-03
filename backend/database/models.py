@@ -20,9 +20,11 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active = Column(DateTime, default=datetime.utcnow)
 
-    # For Phase 2 (optional accounts)
+    # For Phase 2 (authenticated accounts)
     email = Column(String, nullable=True, unique=True)
     password_hash = Column(String, nullable=True)
+    name = Column(String, nullable=True)
+    email_verified = Column(Boolean, default=False)
     
     # Relationships
     history_entries = relationship("HistoryEntry", back_populates="user", cascade="all, delete-orphan")

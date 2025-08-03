@@ -1,26 +1,47 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Clock, TrendingUp, Award, Calendar, Filter, Search, BarChart3 } from 'lucide-react';
+import Link from 'next/link';
+import { Clock, TrendingUp, Award, Calendar, Filter, Search, BarChart3, User, Target } from 'lucide-react';
 import { HistoryResponse, JourneyResponse, HistoryFilter, AnalysisType } from '@/types/history';
 import { EcoScoreDisplay } from '@/components/EcoScoreDisplay';
 import JourneyAnalytics from '@/components/JourneyAnalytics';
-import { getAuthHeaders } from '@/utils/userToken';
+import { getAuthHeaders, isAuthenticated, getUserInfo } from '@/utils/userToken';
+import AuthModal from '@/components/AuthModal';
 
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState<HistoryResponse | null>(null);
   const [journeyData, setJourneyData] = useState<JourneyResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'recent' | 'journey' | 'timeline' | 'analytics'>('recent');
+  const [authenticated, setAuthenticated] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [filters, setFilters] = useState<HistoryFilter>({
     limit: 20,
     offset: 0
   });
 
   useEffect(() => {
+    const checkAuth = () => {
+      setAuthenticated(isAuthenticated());
+    };
+
+    checkAuth();
+
+    if (isAuthenticated()) {
+      fetchHistoryData();
+      fetchJourneyData();
+    } else {
+      setLoading(false);
+    }
+  }, [filters]);
+
+  const handleAuthSuccess = () => {
+    setAuthenticated(true);
+    setShowAuthModal(false);
     fetchHistoryData();
     fetchJourneyData();
-  }, [filters]);
+  };
 
   const fetchHistoryData = async () => {
     try {
@@ -94,6 +115,82 @@ export default function HistoryPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading your eco journey...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 py-16">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <User className="w-8 h-8 text-green-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Sign In to View Your History</h1>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              Create an account or sign in to save your analysis history and track your eco journey over time.
+              Anonymous users can analyze products but won't have persistent history.
+            </p>
+
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8 max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">With an account, you can:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                <div className="flex items-start space-x-3">
+                  <BarChart3 className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900">Track Progress</p>
+                    <p className="text-sm text-gray-600">See your eco journey analytics and trends</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Clock className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900">Save History</p>
+                    <p className="text-sm text-gray-600">Keep all your product analyses and comparisons</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Target className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900">Set Goals</p>
+                    <p className="text-sm text-gray-600">Track milestones and achievements</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Award className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-gray-900">Get Insights</p>
+                    <p className="text-sm text-gray-600">Receive personalized recommendations</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
+              >
+                Sign In / Create Account
+              </button>
+              <div>
+                <Link
+                  href="/"
+                  className="text-green-600 hover:text-green-700 transition-colors font-medium"
+                >
+                  Continue analyzing products without account
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={handleAuthSuccess}
+        />
       </div>
     );
   }
