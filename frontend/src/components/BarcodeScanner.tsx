@@ -330,6 +330,7 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
           <li>• Hold the camera steady</li>
           <li>• Position the barcode within the frame</li>
           <li>• Make sure the barcode is clearly visible</li>
+          <li>• Alternative: If scanning fails, try manual entry or file upload</li>
         </ul>
       </div>
     </div>

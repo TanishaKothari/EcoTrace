@@ -4,9 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Clock, TrendingUp, Award, Calendar, Filter, Search, BarChart3, User, Target } from 'lucide-react';
 import { HistoryResponse, JourneyResponse, HistoryFilter, AnalysisType } from '@/types/history';
-import { EcoScoreDisplay } from '@/components/EcoScoreDisplay';
 import JourneyAnalytics from '@/components/JourneyAnalytics';
-import { getAuthHeaders, isAuthenticated, getUserInfo } from '@/utils/userToken';
+import { getAuthHeaders, isAuthenticated } from '@/utils/userToken';
 import AuthModal from '@/components/AuthModal';
 
 export default function HistoryPage() {
@@ -16,25 +15,65 @@ export default function HistoryPage() {
   const [activeTab, setActiveTab] = useState<'recent' | 'journey' | 'timeline' | 'analytics'>('recent');
   const [authenticated, setAuthenticated] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [filters, setFilters] = useState<HistoryFilter>({
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
+  const [filters] = useState<HistoryFilter>({
     limit: 20,
     offset: 0
   });
 
   useEffect(() => {
     const checkAuth = () => {
-      setAuthenticated(isAuthenticated());
+      const authStatus = isAuthenticated();
+      const wasAuthenticated = authenticated;
+      setAuthenticated(authStatus);
+
+      if (!authStatus) {
+        // Clear data immediately when user is not authenticated
+        setHistoryData(null);
+        setJourneyData(null);
+        setLoading(false);
+
+        // Log the logout for debugging
+        if (wasAuthenticated) {
+          console.log('User authentication lost - clearing history data');
+        }
+      }
+
+      return authStatus;
     };
 
-    checkAuth();
-
-    if (isAuthenticated()) {
+    // Initial auth check
+    if (checkAuth()) {
       fetchHistoryData();
       fetchJourneyData();
-    } else {
-      setLoading(false);
     }
-  }, [filters]);
+
+    // Listen for storage changes (logout events)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'ecotrace-user-token' || e.key === 'ecotrace-user-info') {
+        // Token was removed (user logged out)
+        if (!e.newValue && e.oldValue) {
+          checkAuth();
+        }
+      }
+    };
+
+    // Listen for custom logout events (same tab)
+    const handleLogout = () => {
+      console.log('Logout event received - clearing history data');
+      checkAuth();
+    };
+
+    // Listen for localStorage changes from other tabs/components
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('userLogout', handleLogout);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userLogout', handleLogout);
+    };
+  }, [filters, authenticated]);
 
   const handleAuthSuccess = () => {
     setAuthenticated(true);
@@ -53,26 +92,45 @@ export default function HistoryPage() {
       if (filters.limit) params.append('limit', filters.limit.toString());
       if (filters.offset) params.append('offset', filters.offset.toString());
 
+      const authHeaders = await getAuthHeaders();
       const response = await fetch(`http://localhost:8000/history?${params}`, {
-        headers: getAuthHeaders()
+        headers: authHeaders
       });
+
+      if (!response.ok) {
+        console.warn('History data not available:', response.status);
+        setHistoryData(null);
+        return;
+      }
+
       const data = await response.json();
       setHistoryData(data);
     } catch (error) {
       console.error('Error fetching history:', error);
+      setHistoryData(null);
     }
   };
 
   const fetchJourneyData = async () => {
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch('http://localhost:8000/journey', {
-        headers: getAuthHeaders()
+        headers: authHeaders
       });
+
+      if (!response.ok) {
+        console.warn('Journey data not available:', response.status);
+        setJourneyData(null);
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
       setJourneyData(data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching journey data:', error);
+      setJourneyData(null);
       setLoading(false);
     }
   };
@@ -205,14 +263,30 @@ export default function HistoryPage() {
         </div>
 
         {/* Journey Stats Cards */}
-        {journeyData && (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-lg shadow p-6">
+                <div className="animate-pulse">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                    <div className="ml-4 flex-1">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : journeyData && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <Search className="w-8 h-8 text-blue-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Analyses</p>
-                  <p className="text-2xl font-bold text-gray-900">{journeyData.journey.stats.total_analyses}</p>
+                  <p className="text-2xl font-bold text-gray-900">{journeyData?.journey?.stats?.total_analyses || 0}</p>
                 </div>
               </div>
             </div>
@@ -222,8 +296,8 @@ export default function HistoryPage() {
                 <TrendingUp className="w-8 h-8 text-green-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Average EcoScore</p>
-                  <p className={`text-2xl font-bold ${getScoreColor(journeyData.journey.stats.average_eco_score)}`}>
-                    {journeyData.journey.stats.average_eco_score.toFixed(1)}
+                  <p className={`text-2xl font-bold ${getScoreColor(journeyData?.journey?.stats?.average_eco_score || 0)}`}>
+                    {journeyData?.journey?.stats?.average_eco_score?.toFixed(1) || '0.0'}
                   </p>
                 </div>
               </div>
@@ -234,8 +308,8 @@ export default function HistoryPage() {
                 <Award className="w-8 h-8 text-yellow-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Best Score</p>
-                  <p className={`text-2xl font-bold ${getScoreColor(journeyData.journey.stats.best_eco_score)}`}>
-                    {journeyData.journey.stats.best_eco_score}
+                  <p className={`text-2xl font-bold ${getScoreColor(journeyData?.journey?.stats?.best_eco_score || 0)}`}>
+                    {journeyData?.journey?.stats?.best_eco_score || 0}
                   </p>
                 </div>
               </div>
@@ -246,7 +320,7 @@ export default function HistoryPage() {
                 <Calendar className="w-8 h-8 text-purple-500" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Days Active</p>
-                  <p className="text-2xl font-bold text-gray-900">{journeyData.journey.stats.days_active}</p>
+                  <p className="text-2xl font-bold text-gray-900">{journeyData?.journey?.stats?.days_active || 0}</p>
                 </div>
               </div>
             </div>
@@ -254,7 +328,7 @@ export default function HistoryPage() {
         )}
 
         {/* Insights */}
-        {journeyData && journeyData.insights.length > 0 && (
+        {journeyData && journeyData.insights && journeyData.insights.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
             <h3 className="text-lg font-semibold text-blue-900 mb-3">💡 Your Eco Insights</h3>
             <ul className="space-y-2">
@@ -266,7 +340,7 @@ export default function HistoryPage() {
         )}
 
         {/* Milestones */}
-        {journeyData && journeyData.journey.milestones.length > 0 && (
+        {journeyData && journeyData.journey?.milestones && journeyData.journey.milestones.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
             <h3 className="text-lg font-semibold text-yellow-900 mb-3">🏆 Achievements</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -359,14 +433,14 @@ export default function HistoryPage() {
 
             {activeTab === 'journey' && journeyData && (
               <div className="space-y-6">
-                {journeyData.journey.category_breakdown.length === 0 ? (
+                {journeyData.journey?.category_breakdown?.length === 0 ? (
                   <div className="text-center py-12">
                     <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No category data yet</h3>
                     <p className="text-gray-600">Analyze more products to see category breakdowns!</p>
                   </div>
                 ) : (
-                  journeyData.journey.category_breakdown.map((category) => (
+                  journeyData.journey?.category_breakdown?.map((category) => (
                     <div key={category.category} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="font-medium text-gray-900">{category.category}</h4>
@@ -400,7 +474,7 @@ export default function HistoryPage() {
 
             {activeTab === 'timeline' && journeyData && (
               <div className="space-y-4">
-                {journeyData.journey.timeline.length === 0 ? (
+                {journeyData.journey?.timeline?.length === 0 ? (
                   <div className="text-center py-12">
                     <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No timeline data yet</h3>
@@ -409,7 +483,7 @@ export default function HistoryPage() {
                 ) : (
                   <div className="relative">
                     <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                    {journeyData.journey.timeline.map((entry, index) => (
+                    {journeyData.journey?.timeline?.map((entry, index) => (
                       <div key={index} className="relative flex items-center space-x-4 pb-6">
                         <div className={`relative z-10 w-8 h-8 bg-white border-2 rounded-full flex items-center justify-center ${
                           entry.analysis_type === 'comparison' ? 'border-purple-300 bg-purple-50' : 'border-gray-300'

@@ -11,13 +11,13 @@ import json
 from typing import Optional, Tuple
 from sqlalchemy.orm import Session
 from database import get_db_session, User
-from utils.security import hash_token_for_storage, validate_token
+from utils.security import hash_token_for_storage, validate_token, SECRET_KEY
 
 class AuthService:
     """Service for handling user authentication"""
     
     def __init__(self):
-        self.secret_key = "ecotrace_auth_secret_change_in_production"
+        self.secret_key = SECRET_KEY
     
     def hash_password(self, password: str) -> str:
         """Hash password using SHA-256 with salt"""

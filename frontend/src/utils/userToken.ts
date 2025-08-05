@@ -127,6 +127,11 @@ export async function loginUser(email: string, password: string) {
 
 export function logoutUser(): void {
   clearUserToken();
+
+  // Dispatch custom event to notify components of logout
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('userLogout'));
+  }
 }
 
 export async function getAuthHeaders(): Promise<Record<string, string>> {

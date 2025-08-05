@@ -190,6 +190,7 @@ async def health_check():
 @app.post("/analyze/product", response_model=EcoScoreResponse)
 async def analyze_product(request: ProductRequest, user_token: str = Header(None, alias="x-user-token")):
     """Analyze a product by name or URL"""
+    logger.info(f"Starting product analysis for query: {request.query}")
     try:
         # Get or generate user token
         if not user_token or not validate_token(user_token):
@@ -203,13 +204,17 @@ async def analyze_product(request: ProductRequest, user_token: str = Header(None
             analysis_type = AnalysisType.PRODUCT_SEARCH
 
         # Save to history using database service
-        database_history_service.save_analysis(
-            user_token=user_token,
-            query=request.query,
-            analysis=analysis.analysis,
-            analysis_type=analysis_type,
-            is_comparison_analysis=request.is_comparison_analysis
-        )
+        try:
+            database_history_service.save_analysis(
+                user_token=user_token,
+                query=request.query,
+                analysis=analysis.analysis,
+                analysis_type=analysis_type,
+                is_comparison_analysis=request.is_comparison_analysis
+            )
+        except Exception as e:
+            logger.error(f"Failed to save analysis to history: {e}")
+            # Don't fail the request if history saving fails
 
         return analysis
     except Exception as e:

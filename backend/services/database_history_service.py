@@ -3,6 +3,7 @@ Database-based history service for EcoTrace application
 """
 
 import uuid
+import logging
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 from collections import defaultdict, Counter
@@ -19,6 +20,8 @@ from models.eco_score import ProductAnalysis
 from utils.security import validate_token, hash_token_for_storage, generate_secure_anonymous_token
 from services.auth_service import auth_service
 import uuid
+
+logger = logging.getLogger(__name__)
 
 class DatabaseHistoryService:
     """Database-based service for managing analysis history and eco journey tracking"""
@@ -339,6 +342,7 @@ class DatabaseHistoryService:
                 count=len(category_entries),
                 average_score=statistics.mean(scores),
                 best_score=max(scores),
+                worst_score=min(scores),
                 trend=trend
             ))
         

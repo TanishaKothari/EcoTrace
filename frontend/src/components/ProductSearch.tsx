@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Link, Loader2 } from 'lucide-react';
+import { Search, Link } from 'lucide-react';
 import { getAuthHeaders } from '@/utils/userToken';
 
 interface ProductSearchProps {
@@ -75,9 +75,10 @@ export default function ProductSearch({ onAnalysis, onLoading }: ProductSearchPr
 
     onLoading(true);
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch('http://localhost:8000/analyze/product', {
         method: 'POST',
-        headers: getAuthHeaders(),
+        headers: authHeaders,
         body: JSON.stringify({
           query: query.trim(),
           query_type: queryType,

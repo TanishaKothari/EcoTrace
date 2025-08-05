@@ -47,14 +47,15 @@ def generate_secure_anonymous_token() -> str:
 def validate_token(token: str) -> bool:
     """Validate that a token is properly signed and formatted"""
     try:
-        if not token.startswith("anon_"):
+        # Handle both anonymous and authenticated tokens
+        if not (token.startswith("anon_") or token.startswith("auth_")):
             return False
-        
+
         parts = token.split("_", 2)
         if len(parts) != 3:
             return False
-        
-        _, payload_b64, signature = parts
+
+        token_type, payload_b64, signature = parts
         
         # Verify signature
         expected_signature = hmac.new(
@@ -75,18 +76,24 @@ def validate_token(token: str) -> bool:
         payload_json = base64.urlsafe_b64decode(payload_b64).decode()
         payload = json.loads(payload_json)
         
-        # Validate payload structure
-        if payload.get("type") != "anonymous":
+        # Validate payload structure based on token type
+        expected_type = "anonymous" if token_type == "anon" else "authenticated"
+        if payload.get("type") != expected_type:
             return False
         
-        if "created" not in payload or "random" not in payload:
-            return False
+        # Validate required fields based on token type
+        if token_type == "anon":
+            if "created" not in payload or "random" not in payload:
+                return False
+        else:  # auth token
+            if "user_id" not in payload or "created" not in payload or "random" not in payload:
+                return False
         
         # Note: No expiration for anonymous tokens to maintain persistent history
         # In Phase 2, authenticated tokens could have expiration
         
         return True
-        
+
     except Exception:
         return False
 

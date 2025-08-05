@@ -52,9 +52,10 @@ export default function Home() {
     const saveComparisonToHistory = async () => {
       if (comparisonProducts.length >= 2) {
         try {
+          const authHeaders = await getAuthHeaders();
           await fetch('http://localhost:8000/history/comparison', {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: authHeaders,
             body: JSON.stringify({
               products: comparisonProducts.map(p => p.analysis),
               notes: `Auto-saved comparison of ${comparisonProducts.map(p => p.analysis.product_info.name).join(', ')}`
@@ -77,9 +78,10 @@ export default function Home() {
 
     setIsLoading(true);
     try {
+      const authHeaders = await getAuthHeaders();
       const response = await fetch('http://localhost:8000/analyze/product', {
         method: 'POST',
-        headers: getAuthHeaders(),
+        headers: authHeaders,
         body: JSON.stringify({
           query: query,
           query_type: queryType,

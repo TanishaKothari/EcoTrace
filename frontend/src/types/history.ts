@@ -12,6 +12,7 @@ export interface HistoryEntry {
   query: string;
   analysis: ProductAnalysis;
   user_session?: string;
+  is_comparison_analysis?: boolean;
 }
 
 export interface ComparisonHistoryEntry {
@@ -87,5 +88,27 @@ export interface JourneyResponse {
   insights: string[];
 }
 
-// Import ProductAnalysis from existing types
-import { ProductAnalysis } from './index';
+// Define ProductAnalysis interface for history types
+interface ImpactFactor {
+  name: string;
+  score: number;
+  description: string;
+  weight: number;
+}
+
+interface ProductInfo {
+  name: string;
+  brand?: string;
+  category?: string;
+  description?: string;
+}
+
+export interface ProductAnalysis {
+  product_info: ProductInfo;
+  impact_factors: ImpactFactor[];
+  eco_score: number;
+  confidence_level: number;
+  analysis_summary: string;
+  recommendations: string[];
+  data_sources: string[];
+}
