@@ -43,6 +43,12 @@ export async function generateToken(): Promise<string> {
   return `temp_${timestamp}_${random}`;
 }
 
+export function setUserToken(token: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(USER_TOKEN_KEY, token);
+  }
+}
+
 export function clearUserToken(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(USER_TOKEN_KEY);
@@ -62,6 +68,9 @@ export interface UserInfo {
 export function setUserInfo(userInfo: UserInfo): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem(USER_INFO_KEY, JSON.stringify(userInfo));
+
+    // Dispatch custom event to notify components of login
+    window.dispatchEvent(new CustomEvent('userLogin', { detail: userInfo }));
   }
 }
 

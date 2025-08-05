@@ -23,8 +23,30 @@ export default function Navigation() {
     updateUserInfo();
 
     // Listen for storage changes (when user logs in/out in another tab)
-    window.addEventListener('storage', updateUserInfo);
-    return () => window.removeEventListener('storage', updateUserInfo);
+    const handleStorageChange = () => {
+      updateUserInfo();
+    };
+
+    // Listen for custom authentication events (same tab)
+    const handleLogin = (event: CustomEvent) => {
+      setUserInfo(event.detail);
+      setAuthenticated(true);
+    };
+
+    const handleLogout = () => {
+      setUserInfo(null);
+      setAuthenticated(false);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('userLogin', handleLogin as EventListener);
+    window.addEventListener('userLogout', handleLogout);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userLogin', handleLogin as EventListener);
+      window.removeEventListener('userLogout', handleLogout);
+    };
   }, []);
 
   const handleAuthSuccess = () => {
