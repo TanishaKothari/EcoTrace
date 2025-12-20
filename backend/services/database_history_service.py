@@ -18,7 +18,6 @@ from models.history import (
 from models.eco_score import ProductAnalysis
 from utils.security import validate_token, hash_token_for_storage
 from services.auth_service import auth_service
-import uuid
 
 logger = logging.getLogger(__name__)
 

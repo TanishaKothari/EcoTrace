@@ -9,7 +9,6 @@ import time
 import base64
 import json
 from typing import Optional, Tuple
-from sqlalchemy.orm import Session
 from database import get_db_session, User
 from utils.security import hash_token_for_storage, validate_token, SECRET_KEY
 

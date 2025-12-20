@@ -1,8 +1,8 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from datetime import datetime
 from enum import Enum
-from .eco_score import ProductAnalysis, ProductInfo
+from .eco_score import ProductAnalysis
 
 class AnalysisType(str, Enum):
     """Type of analysis performed"""

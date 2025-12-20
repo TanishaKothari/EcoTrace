@@ -1,5 +1,4 @@
 import httpx
-import asyncio
 import cv2
 import numpy as np
 from pyzbar import pyzbar

@@ -1,6 +1,5 @@
 import httpx
 import json
-import asyncio
 from typing import Dict, Any, Optional
 import logging
 
