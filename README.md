@@ -81,6 +81,7 @@ cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
+echo "ECOTRACE_SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))")" > .env
 ```
 
 3. **Set up the frontend**

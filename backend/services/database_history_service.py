@@ -4,12 +4,11 @@ Database-based history service for EcoTrace application
 
 import uuid
 import logging
-from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
+from datetime import datetime
+from typing import List, Optional
 from collections import defaultdict, Counter
 import statistics
-from sqlalchemy.orm import Session
-from sqlalchemy import desc, func
+from sqlalchemy import desc
 
 from database import get_db_session, User, HistoryEntry, ComparisonEntry
 from models.history import (
@@ -17,7 +16,7 @@ from models.history import (
     JourneyStats, CategoryStats, TimelineEntry, AnalysisType
 )
 from models.eco_score import ProductAnalysis
-from utils.security import validate_token, hash_token_for_storage, generate_secure_anonymous_token
+from utils.security import validate_token, hash_token_for_storage
 from services.auth_service import auth_service
 import uuid
 

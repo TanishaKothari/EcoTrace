@@ -1,10 +1,7 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
-import asyncio
-import json
-import re
+from typing import Optional
 from datetime import datetime
 import uvicorn
 import logging
@@ -19,8 +16,7 @@ from utils.security import generate_secure_anonymous_token, validate_token
 from models.auth import RegisterRequest, LoginRequest, AuthResponse, UserInfo, TokenValidationResponse
 from models.eco_score import EcoScoreResponse, ProductAnalysis
 from models.history import (
-    HistoryFilter, HistoryResponse, JourneyResponse,
-    AnalysisType, HistoryEntry, ComparisonHistoryEntry
+    HistoryFilter, HistoryResponse, JourneyResponse, AnalysisType
 )
 
 logger = logging.getLogger(__name__)

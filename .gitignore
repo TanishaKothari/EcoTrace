@@ -101,3 +101,7 @@ backend/data/
 config/secrets.json
 *.key
 *.pem
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
+.codacy/

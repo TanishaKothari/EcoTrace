@@ -6,12 +6,19 @@ import secrets
 import hashlib
 import hmac
 import time
+import os
 from typing import Optional
 import base64
 import json
 
-# Secret key for signing tokens (in production, this should be from environment)
-SECRET_KEY = "ecotrace_secret_key_change_in_production"
+# Secret key for signing tokens
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not SECRET_KEY:
+    raise RuntimeError(
+        "SECRET_KEY environment variable is not set. "
+        "Please create a backend/.env file with: SECRET_KEY=your_secret_key_here"
+    )
 
 def generate_secure_anonymous_token() -> str:
     """Generate a cryptographically secure anonymous user token"""
