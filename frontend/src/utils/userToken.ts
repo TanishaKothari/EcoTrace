@@ -1,6 +1,7 @@
 /**
  * User token management for anonymous and authenticated users
  */
+import { API_BASE_URL } from '@/utils/api';
 
 const USER_TOKEN_KEY = 'ecotrace-user-token';
 const USER_INFO_KEY = 'ecotrace-user-info';
@@ -22,7 +23,7 @@ export async function getUserToken(): Promise<string> {
 export async function generateToken(): Promise<string> {
   // Request a secure token from the backend
   try {
-    const response = await fetch('http://localhost:8000/auth/token', {
+    const response = await fetch(`${API_BASE_URL}/auth/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -97,7 +98,7 @@ export function isAuthenticated(): boolean {
 }
 
 export async function registerUser(email: string, password: string, name?: string) {
-  const response = await fetch('http://localhost:8000/auth/register', {
+  const response = await fetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -116,7 +117,7 @@ export async function registerUser(email: string, password: string, name?: strin
 }
 
 export async function loginUser(email: string, password: string) {
-  const response = await fetch('http://localhost:8000/auth/login', {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

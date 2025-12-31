@@ -5,6 +5,7 @@ from typing import Optional
 from datetime import datetime
 import uvicorn
 import logging
+import os
 
 from database import create_tables
 from services.ollama_service import OllamaService
@@ -19,6 +20,14 @@ from models.history import (
     HistoryFilter, HistoryResponse, JourneyResponse, AnalysisType
 )
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    handlers=[
+        logging.FileHandler("ecotrace.log"),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="EcoTrace API", description="AI-powered environmental impact analysis")
@@ -26,7 +35,7 @@ app = FastAPI(title="EcoTrace API", description="AI-powered environmental impact
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Next.js dev server
+    allow_origins=[os.getenv("FRONTEND_ORIGIN")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

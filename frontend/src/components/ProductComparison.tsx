@@ -141,7 +141,6 @@ export default function ProductComparison({ products, onRemoveProduct, onClose, 
       await onAddProduct(newProductQuery.trim(), queryType);
       setNewProductQuery('');
     } catch (error) {
-      console.error('Failed to add product:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Failed to add product. Please try again.');
     }
   };

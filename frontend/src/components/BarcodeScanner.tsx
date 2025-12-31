@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Camera, Upload, Scan, X } from 'lucide-react';
 import Webcam from 'react-webcam';
 import { getAuthHeaders, getUserToken } from '@/utils/userToken';
+import { API_BASE_URL } from '@/utils/api';
 
 interface BarcodeScannerProps {
   onAnalysis: (result: any) => void;
@@ -20,7 +21,7 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
     onLoading(true);
     try {
       const authHeaders = await getAuthHeaders();
-      const response = await fetch('http://localhost:8000/analyze/barcode', {
+      const response = await fetch(`${API_BASE_URL}/analyze/barcode`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +60,6 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       const result = await response.json();
       onAnalysis(result);
     } catch (error) {
-      console.error('Barcode analysis failed:', error);
       onAnalysis({
         success: false,
         error: error instanceof Error ? error.message : 'Barcode analysis failed',
@@ -82,13 +82,11 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       // Ensure it's a JPEG blob with proper MIME type
       const jpegBlob = new Blob([blob], { type: 'image/jpeg' });
 
-      console.log('Image blob size:', jpegBlob.size, 'type:', jpegBlob.type);
-
       const formData = new FormData();
       formData.append('file', jpegBlob, 'barcode.jpg');
 
       const userToken = await getUserToken();
-      const analysisResponse = await fetch('http://localhost:8000/analyze/image', {
+      const analysisResponse = await fetch(`${API_BASE_URL}/analyze/image`, {
         method: 'POST',
         headers: {
           'X-User-Token': userToken,
@@ -118,7 +116,6 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       onAnalysis(result);
       setIsScanning(false);
     } catch (error) {
-      console.error('Camera capture analysis failed:', error);
       onAnalysis({
         success: false,
         error: error instanceof Error ? error.message : 'Camera capture failed',
@@ -177,7 +174,7 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       formData.append('file', file);
 
       const userToken = await getUserToken();
-      const response = await fetch('http://localhost:8000/analyze/image', {
+      const response = await fetch(`${API_BASE_URL}/analyze/image`, {
         method: 'POST',
         headers: {
           'X-User-Token': userToken,
@@ -187,9 +184,6 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Response error:', errorText);
-
         // Provide more specific error messages
         let errorMessage = 'Image analysis failed';
         if (response.status === 400) {
@@ -206,7 +200,6 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       const result = await response.json();
       onAnalysis(result);
     } catch (error) {
-      console.error('Image analysis failed:', error);
       onAnalysis({
         success: false,
         error: error instanceof Error ? error.message : 'Image analysis failed',

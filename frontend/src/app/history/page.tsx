@@ -7,6 +7,7 @@ import { HistoryResponse, JourneyResponse, HistoryFilter, AnalysisType } from '@
 import JourneyAnalytics from '@/components/JourneyAnalytics';
 import { getAuthHeaders, isAuthenticated } from '@/utils/userToken';
 import AuthModal from '@/components/AuthModal';
+import { API_BASE_URL } from '@/utils/api';
 
 export default function HistoryPage() {
   const [historyData, setHistoryData] = useState<HistoryResponse | null>(null);
@@ -33,11 +34,6 @@ export default function HistoryPage() {
         setHistoryData(null);
         setJourneyData(null);
         setLoading(false);
-
-        // Log the logout for debugging
-        if (wasAuthenticated) {
-          console.log('User authentication lost - clearing history data');
-        }
       }
 
       return authStatus;
@@ -61,7 +57,6 @@ export default function HistoryPage() {
 
     // Listen for custom logout events (same tab)
     const handleLogout = () => {
-      console.log('Logout event received - clearing history data');
       checkAuth();
     };
 
@@ -93,12 +88,11 @@ export default function HistoryPage() {
       if (filters.offset) params.append('offset', filters.offset.toString());
 
       const authHeaders = await getAuthHeaders();
-      const response = await fetch(`http://localhost:8000/history?${params}`, {
+      const response = await fetch(`${API_BASE_URL}/history?${params}`, {
         headers: authHeaders
       });
 
       if (!response.ok) {
-        console.warn('History data not available:', response.status);
         setHistoryData(null);
         return;
       }
@@ -114,12 +108,11 @@ export default function HistoryPage() {
   const fetchJourneyData = async () => {
     try {
       const authHeaders = await getAuthHeaders();
-      const response = await fetch('http://localhost:8000/journey', {
+      const response = await fetch(`${API_BASE_URL}/journey`, {
         headers: authHeaders
       });
 
       if (!response.ok) {
-        console.warn('Journey data not available:', response.status);
         setJourneyData(null);
         setLoading(false);
         return;

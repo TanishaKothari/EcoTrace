@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Search, Link } from 'lucide-react';
 import { getAuthHeaders } from '@/utils/userToken';
+import { API_BASE_URL } from '@/utils/api';
 
 interface ProductSearchProps {
   onAnalysis: (result: any) => void;
@@ -76,7 +77,7 @@ export default function ProductSearch({ onAnalysis, onLoading }: ProductSearchPr
     onLoading(true);
     try {
       const authHeaders = await getAuthHeaders();
-      const response = await fetch('http://localhost:8000/analyze/product', {
+      const response = await fetch(`${API_BASE_URL}/analyze/product`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({
@@ -97,7 +98,6 @@ export default function ProductSearch({ onAnalysis, onLoading }: ProductSearchPr
       const result = await response.json();
       onAnalysis(result);
     } catch (error) {
-      console.error('Analysis failed:', error);
       onAnalysis({
         success: false,
         error: error instanceof Error ? error.message : 'Analysis failed',

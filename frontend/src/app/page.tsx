@@ -7,6 +7,7 @@ import BarcodeScanner from '@/components/BarcodeScanner';
 import EcoScoreDisplay from '@/components/EcoScoreDisplay';
 import ProductComparison from '@/components/ProductComparison';
 import { getAuthHeaders } from '@/utils/userToken';
+import { API_BASE_URL } from '@/utils/api';
 
 interface ImpactFactor {
   name: string;
@@ -53,7 +54,7 @@ export default function Home() {
       if (comparisonProducts.length >= 2) {
         try {
           const authHeaders = await getAuthHeaders();
-          await fetch('http://localhost:8000/history/comparison', {
+          await fetch(`${API_BASE_URL}/history/comparison`, {
             method: 'POST',
             headers: authHeaders,
             body: JSON.stringify({
@@ -61,7 +62,6 @@ export default function Home() {
               notes: `Auto-saved comparison of ${comparisonProducts.map(p => p.analysis.product_info.name).join(', ')}`
             }),
           });
-          console.log('Comparison auto-saved to history');
         } catch (error) {
           console.error('Failed to auto-save comparison:', error);
         }
@@ -79,7 +79,7 @@ export default function Home() {
     setIsLoading(true);
     try {
       const authHeaders = await getAuthHeaders();
-      const response = await fetch('http://localhost:8000/analyze/product', {
+      const response = await fetch(`${API_BASE_URL}/analyze/product`, {
         method: 'POST',
         headers: authHeaders,
         body: JSON.stringify({

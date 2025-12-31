@@ -6,6 +6,7 @@ import secrets
 import hashlib
 import hmac
 import time
+from pathlib import Path
 from dotenv import load_dotenv
 import os
 from typing import Optional
@@ -13,7 +14,8 @@ import base64
 import json
 
 # Secret key for signing tokens
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 if not SECRET_KEY:
