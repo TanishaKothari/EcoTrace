@@ -385,4 +385,4 @@ async def save_comparison(request: ComparisonRequest, user_token: str = Header(N
         raise HTTPException(status_code=500, detail=f"Failed to save comparison: {str(e)}")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, port=8000)

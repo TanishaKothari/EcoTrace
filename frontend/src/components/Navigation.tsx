@@ -140,7 +140,7 @@ export default function Navigation() {
               </div>
             ) : (
               <button
-                onClick={() => setShowAuthModal(true)}
+                onClick={() => { setShowAuthModal(true); }}
                 className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
               >
                 <User className="w-4 h-4" />
@@ -154,7 +154,7 @@ export default function Navigation() {
       {/* Authentication Modal */}
       <AuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => { setShowAuthModal(false); }}
         onSuccess={handleAuthSuccess}
       />
     </nav>

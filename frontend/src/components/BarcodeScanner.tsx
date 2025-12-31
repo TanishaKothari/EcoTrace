@@ -228,7 +228,7 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
             id="barcode-input"
             type="text"
             value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
+            onChange={(e) => { setBarcode(e.target.value); }}
             placeholder="e.g., 1234567890123"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-600 text-gray-900"
           />
@@ -256,7 +256,7 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
       {!isScanning ? (
         <div className="space-y-4">
           <button
-            onClick={() => setIsScanning(true)}
+            onClick={() => { setIsScanning(true); }}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2"
           >
             <Camera className="h-5 w-5" />
@@ -307,7 +307,7 @@ export default function BarcodeScanner({ onAnalysis, onLoading }: BarcodeScanner
               <span>Capture & Analyze</span>
             </button>
             <button
-              onClick={() => setIsScanning(false)}
+              onClick={() => { setIsScanning(false); }}
               className="bg-gray-600 text-white py-3 px-4 rounded-lg hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors flex items-center justify-center"
             >
               <X className="h-5 w-5" />

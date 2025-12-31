@@ -136,7 +136,7 @@ export default function ProductSearch({ onAnalysis, onLoading }: ProductSearchPr
               id="product-query"
               type="text"
               value={query}
-              onChange={(e) => handleQueryChange(e.target.value)}
+              onChange={(e) => { handleQueryChange(e.target.value); }}
               placeholder="e.g., iPhone 15 Pro or https://..."
               className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-500 text-gray-900 text-sm sm:text-base"
             />

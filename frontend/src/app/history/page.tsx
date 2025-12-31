@@ -220,7 +220,7 @@ export default function HistoryPage() {
 
             <div className="space-y-4">
               <button
-                onClick={() => setShowAuthModal(true)}
+                onClick={() => { setShowAuthModal(true); }}
                 className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
               >
                 Sign In / Create Account
@@ -239,7 +239,7 @@ export default function HistoryPage() {
 
         <AuthModal
           isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
+          onClose={() => { setShowAuthModal(false); }}
           onSuccess={handleAuthSuccess}
         />
       </div>
@@ -358,7 +358,7 @@ export default function HistoryPage() {
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
-                  onClick={() => setActiveTab(id as any)}
+                  onClick={() => { setActiveTab(id as any); }}
                   className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                     activeTab === id
                       ? 'border-green-500 text-green-600'

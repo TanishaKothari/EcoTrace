@@ -4,8 +4,13 @@ Database configuration and session management
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from pathlib import Path
+from dotenv import load_dotenv
 import os
 from .models import Base
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL")

@@ -181,7 +181,7 @@ export default function ProductComparison({ products, onRemoveProduct, onClose, 
             <input
               type="text"
               value={newProductQuery}
-              onChange={(e) => handleQueryChange(e.target.value)}
+              onChange={(e) => { handleQueryChange(e.target.value); }}
               placeholder="Enter product name or paste product URL..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent placeholder-gray-600 text-gray-900"
               disabled={isLoading || products.length >= 3}
@@ -248,7 +248,7 @@ export default function ProductComparison({ products, onRemoveProduct, onClose, 
                 </p>
               </div>
               <button
-                onClick={() => onRemoveProduct(product.id)}
+                onClick={() => { onRemoveProduct(product.id); }}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors ml-2"
               >
                 <X className="w-4 h-4 text-gray-400" />

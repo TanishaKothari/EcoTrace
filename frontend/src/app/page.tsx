@@ -154,7 +154,7 @@ export default function Home() {
           <div className="flex justify-center mb-4 sm:mb-6">
             <div className="bg-white rounded-lg p-1 shadow-lg border border-gray-200 flex flex-wrap justify-center gap-1">
               <button
-                onClick={() => setActiveTab('search')}
+                onClick={() => { setActiveTab('search'); }}
                 className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base min-w-[100px] sm:w-40 ${
                   activeTab === 'search'
                     ? 'bg-green-600 text-white shadow-md'
@@ -166,7 +166,7 @@ export default function Home() {
                 <span className="sm:hidden">Search</span>
               </button>
               <button
-                onClick={() => setActiveTab('scan')}
+                onClick={() => { setActiveTab('scan'); }}
                 className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base min-w-[100px] sm:w-40 ${
                   activeTab === 'scan'
                     ? 'bg-green-600 text-white shadow-md'
@@ -178,7 +178,7 @@ export default function Home() {
                 <span className="sm:hidden">Scan</span>
               </button>
               <button
-                onClick={() => setActiveTab('compare')}
+                onClick={() => { setActiveTab('compare'); }}
                 className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-3 rounded-md transition-all text-sm sm:text-base min-w-[100px] sm:w-40 relative ${
                   activeTab === 'compare'
                     ? 'bg-green-600 text-white shadow-md'
@@ -203,7 +203,7 @@ export default function Home() {
             <ProductComparison
               products={comparisonProducts}
               onRemoveProduct={removeFromComparison}
-              onClose={() => setActiveTab('search')}
+              onClose={() => { setActiveTab('search'); }}
               onAddProduct={addProductToComparison}
               isLoading={isLoading}
             />
